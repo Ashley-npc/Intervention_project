@@ -1,0 +1,1759 @@
+type html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f7f4" />
+    <title>Maison Claire — Coordination</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
+
+      :root {
+        color-scheme: light;
+        --canvas: #f5f7f4;
+        --paper: #ffffff;
+        --ink: #202b27;
+        --muted: #7a8580;
+        --line: #e8ece8;
+        --green: #1f7358;
+        --green-dark: #195942;
+        --green-pale: #e9f4ee;
+        --coral: #d96f55;
+        --coral-pale: #fff0eb;
+        --amber: #bb7c20;
+        --amber-pale: #fff6e5;
+        --blue: #5577a8;
+        --blue-pale: #edf2fb;
+        --sidebar: #fbfcfa;
+        --shadow: 0 8px 26px rgba(28, 52, 40, 0.045);
+        font-family: "DM Sans", sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-width: 320px;
+        background: var(--canvas);
+        color: var(--ink);
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+      button {
+        color: inherit;
+      }
+      .nav-link svg,
+      .icon-button svg,
+      .primary-button svg,
+      .kpi-icon svg,
+      .text-button svg,
+      .day-switch svg,
+      .search-box svg,
+      .alert-mark svg,
+      .next-icon svg,
+      .close-button svg {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .app-shell {
+        display: grid;
+        grid-template-columns: 244px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        display: flex;
+        height: 100vh;
+        flex-direction: column;
+        padding: 25px 16px 18px;
+        border-right: 1px solid var(--line);
+        background: var(--sidebar);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 0 10px;
+        margin-bottom: 38px;
+      }
+      .brand-mark {
+        display: grid;
+        width: 37px;
+        height: 37px;
+        place-items: center;
+        border-radius: 11px;
+        background: var(--green);
+        color: white;
+      }
+      .brand-name {
+        font:
+          800 16px "Manrope",
+          sans-serif;
+        letter-spacing: 0;
+      }
+      .brand-sub {
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .nav-label {
+        padding: 0 12px;
+        margin: 0 0 9px;
+        color: #9aa39e;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .nav-list {
+        display: grid;
+        gap: 4px;
+      }
+      .nav-link {
+        display: flex;
+        width: 100%;
+        min-height: 42px;
+        align-items: center;
+        gap: 12px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: #67726c;
+        text-align: left;
+        font-size: 13px;
+        cursor: pointer;
+        transition:
+          background 0.18s,
+          color 0.18s;
+      }
+      .nav-link:hover {
+        background: #f0f4f0;
+        color: var(--ink);
+      }
+      .nav-link.active {
+        background: var(--green-pale);
+        color: var(--green-dark);
+        font-weight: 700;
+      }
+      .nav-link svg {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+      }
+      .nav-count {
+        min-width: 20px;
+        margin-left: auto;
+        padding: 2px 6px;
+        border-radius: 20px;
+        background: var(--coral-pale);
+        color: #bf5b43;
+        text-align: center;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .sidebar-bottom {
+        margin-top: auto;
+      }
+      .help-card {
+        padding: 14px;
+        margin: 0 4px 17px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+      }
+      .help-card strong {
+        display: block;
+        margin-bottom: 5px;
+        font:
+          700 12px "Manrope",
+          sans-serif;
+      }
+      .help-card p {
+        margin: 0 0 11px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.5;
+      }
+      .help-card a {
+        color: var(--green);
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 7px 0;
+        border-top: 1px solid var(--line);
+      }
+      .avatar {
+        display: grid;
+        width: 35px;
+        height: 35px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 50%;
+        background: #f2d9c9;
+        color: #754c38;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .profile-name {
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .profile-role {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .profile-more {
+        margin-left: auto;
+        color: var(--muted);
+      }
+
+      .main {
+        min-width: 0;
+        padding: 26px clamp(22px, 3.6vw, 54px) 42px;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 31px;
+      }
+      .crumb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .crumb span:last-child {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .icon-button {
+        position: relative;
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: white;
+        cursor: pointer;
+      }
+      .icon-button:hover {
+        border-color: #cbd7ce;
+        background: #fbfdfb;
+      }
+      .icon-button svg {
+        width: 17px;
+        height: 17px;
+        color: #56635c;
+      }
+      .notification-dot {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 7px;
+        height: 7px;
+        border: 1.5px solid white;
+        border-radius: 50%;
+        background: var(--coral);
+      }
+      .primary-button {
+        display: inline-flex;
+        min-height: 39px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 14px;
+        border: 1px solid var(--green);
+        border-radius: 6px;
+        background: var(--green);
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          background 0.18s,
+          transform 0.18s;
+      }
+      .primary-button:hover {
+        transform: translateY(-1px);
+        background: var(--green-dark);
+      }
+      .primary-button svg {
+        width: 15px;
+        height: 15px;
+      }
+      .welcome {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 22px;
+      }
+      h1 {
+        margin: 0;
+        font:
+          800 clamp(23px, 2.2vw, 29px) "Manrope",
+          sans-serif;
+        letter-spacing: 0;
+      }
+      .welcome p {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .date-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 11px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--paper);
+        color: #536159;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .date-pill svg {
+        width: 15px;
+        height: 15px;
+      }
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 13px;
+        margin-bottom: 23px;
+      }
+      .kpi {
+        min-height: 112px;
+        padding: 17px 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+      }
+      .kpi-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: #68746d;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .kpi-icon {
+        display: grid;
+        width: 29px;
+        height: 29px;
+        place-items: center;
+        border-radius: 7px;
+      }
+      .kpi-icon svg {
+        width: 15px;
+        height: 15px;
+      }
+      .tone-green {
+        background: var(--green-pale);
+        color: var(--green);
+      }
+      .tone-coral {
+        background: var(--coral-pale);
+        color: var(--coral);
+      }
+      .tone-amber {
+        background: var(--amber-pale);
+        color: var(--amber);
+      }
+      .tone-blue {
+        background: var(--blue-pale);
+        color: var(--blue);
+      }
+      .kpi-value {
+        margin-top: 10px;
+        font:
+          800 25px "Manrope",
+          sans-serif;
+      }
+      .kpi-foot {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .kpi-foot strong {
+        color: var(--green);
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1.75fr) minmax(260px, 0.85fr);
+        align-items: start;
+        gap: 17px;
+      }
+      .panel {
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 17px 19px;
+        border-bottom: 1px solid var(--line);
+      }
+      .panel-title {
+        margin: 0;
+        font:
+          700 14px "Manrope",
+          sans-serif;
+      }
+      .panel-subtitle {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .text-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 2px;
+        border: 0;
+        background: transparent;
+        color: var(--green);
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .text-button svg {
+        width: 14px;
+        height: 14px;
+      }
+      .schedule-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 13px 19px;
+        border-bottom: 1px solid var(--line);
+      }
+      .day-switch {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .day-switch button {
+        display: grid;
+        width: 27px;
+        height: 27px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: white;
+        cursor: pointer;
+      }
+      .day-switch button svg {
+        width: 13px;
+        height: 13px;
+      }
+      .day-label {
+        margin: 0 4px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .view-switch {
+        display: flex;
+        padding: 3px;
+        border-radius: 5px;
+        background: #f2f5f2;
+      }
+      .view-switch button {
+        padding: 5px 9px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 10px;
+        cursor: pointer;
+      }
+      .view-switch button.selected {
+        background: white;
+        color: var(--ink);
+        box-shadow: 0 1px 3px #18291e12;
+        font-weight: 700;
+      }
+      .filter-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 19px;
+        border-bottom: 1px solid var(--line);
+      }
+      .search-box {
+        display: flex;
+        min-width: 120px;
+        flex: 1;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+      }
+      .search-box svg {
+        width: 14px;
+        height: 14px;
+        flex: 0 0 auto;
+        color: #929c96;
+      }
+      .search-box input {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--ink);
+        font-size: 10px;
+      }
+      .search-box input::placeholder {
+        color: #9aa39e;
+      }
+      .filter-select {
+        max-width: 125px;
+        padding: 7px 24px 7px 9px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: white;
+        color: #66716b;
+        font-size: 10px;
+      }
+      .schedule-list {
+        padding: 0 19px;
+      }
+      .schedule-item {
+        display: grid;
+        grid-template-columns: 46px 3px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        min-height: 82px;
+        border-bottom: 1px solid #eef1ee;
+        animation: arrive 0.32s both;
+      }
+      .schedule-item:last-child {
+        border-bottom: 0;
+      }
+      @keyframes arrive {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .time {
+        color: #536159;
+        font:
+          700 11px "Manrope",
+          sans-serif;
+      }
+      .time span {
+        display: block;
+        margin-top: 4px;
+        color: #9aa39e;
+        font:
+          500 9px "DM Sans",
+          sans-serif;
+      }
+      .event-line {
+        width: 3px;
+        height: 42px;
+        border-radius: 3px;
+        background: var(--green);
+      }
+      .event-line.coral {
+        background: var(--coral);
+      }
+      .event-line.amber {
+        background: #d39a42;
+      }
+      .event-line.blue {
+        background: #7993bf;
+      }
+      .event-main {
+        min-width: 0;
+      }
+      .event-title {
+        overflow: hidden;
+        color: #29342e;
+        font-size: 11px;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .event-meta {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 9px;
+      }
+      .mini-avatar {
+        display: inline-grid;
+        width: 19px;
+        height: 19px;
+        place-items: center;
+        border-radius: 50%;
+        background: #dcebe1;
+        color: var(--green-dark);
+        font-size: 8px;
+        font-weight: 700;
+      }
+      .event-status {
+        align-self: center;
+        padding: 5px 7px;
+        border-radius: 20px;
+        background: var(--green-pale);
+        color: var(--green-dark);
+        font-size: 9px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .event-status.waiting {
+        background: var(--amber-pale);
+        color: #a16a16;
+      }
+      .event-status.progress {
+        background: var(--blue-pale);
+        color: #4c6898;
+      }
+      .event-status.urgent {
+        background: var(--coral-pale);
+        color: #bc5841;
+      }
+      .empty-state {
+        display: none;
+        padding: 27px 10px;
+        color: var(--muted);
+        text-align: center;
+        font-size: 11px;
+      }
+      .right-column {
+        display: grid;
+        gap: 15px;
+      }
+      .alert-panel {
+        border-color: #f2ddd4;
+      }
+      .alert-panel .panel-head {
+        border-bottom-color: #f4e7e2;
+      }
+      .alert-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .alert-mark {
+        display: grid;
+        width: 29px;
+        height: 29px;
+        place-items: center;
+        border-radius: 7px;
+        background: var(--coral-pale);
+        color: var(--coral);
+      }
+      .alert-mark svg {
+        width: 15px;
+        height: 15px;
+      }
+      .alert-count {
+        padding: 3px 7px;
+        border-radius: 20px;
+        background: var(--coral-pale);
+        color: #bd5d45;
+        font-size: 9px;
+        font-weight: 700;
+      }
+      .alert-body {
+        padding: 5px 17px 13px;
+      }
+      .alert-item {
+        padding: 12px 1px;
+        border-bottom: 1px solid #f2ece9;
+      }
+      .alert-item:last-child {
+        border-bottom: 0;
+      }
+      .alert-item-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .alert-name {
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .alert-time {
+        color: #9a8279;
+        font-size: 9px;
+        white-space: nowrap;
+      }
+      .alert-detail {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.45;
+      }
+      .alert-action {
+        margin-top: 9px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--coral);
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .progress-panel .panel-head {
+        padding-bottom: 13px;
+      }
+      .progress-content {
+        padding: 15px 18px 17px;
+      }
+      .progress-top {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 9px;
+      }
+      .progress-number {
+        font:
+          800 23px "Manrope",
+          sans-serif;
+      }
+      .progress-note {
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .progress-track {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 10px;
+        background: #edf1ed;
+      }
+      .progress-fill {
+        width: 75%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--green);
+        transition: width 0.4s ease;
+      }
+      .progress-legend {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 9px;
+      }
+      .legend-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        margin-right: 4px;
+        border-radius: 50%;
+        background: var(--green);
+        vertical-align: 1px;
+      }
+      .legend-dot.pending {
+        background: #d39a42;
+      }
+      .next-panel {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #f0f5f1;
+      }
+      .next-icon {
+        display: grid;
+        width: 33px;
+        height: 33px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 7px;
+        background: white;
+        color: var(--green);
+      }
+      .next-icon svg {
+        width: 16px;
+        height: 16px;
+      }
+      .next-text {
+        color: #5e6b63;
+        font-size: 10px;
+        line-height: 1.5;
+      }
+      .next-text strong {
+        color: var(--ink);
+      }
+      .toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 10;
+        max-width: min(360px, calc(100vw - 32px));
+        padding: 12px 16px;
+        border: 1px solid #cce1d3;
+        border-radius: 7px;
+        background: #f2faf4;
+        color: var(--green-dark);
+        box-shadow: 0 8px 30px #26392d20;
+        font-size: 12px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        place-items: center;
+        padding: 18px;
+        background: #14231da6;
+      }
+      .modal-backdrop.open {
+        display: grid;
+      }
+      .modal {
+        width: min(470px, 100%);
+        padding: 23px;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 20px 70px #0c1e1640;
+        animation: arrive 0.2s both;
+      }
+      .modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .modal h2 {
+        margin: 0;
+        font:
+          700 18px "Manrope",
+          sans-serif;
+      }
+      .modal p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .close-button {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: white;
+        cursor: pointer;
+      }
+      .close-button svg {
+        width: 15px;
+        height: 15px;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 13px;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+      .field.full {
+        grid-column: 1 / -1;
+      }
+      .field label {
+        color: #59655e;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .field input,
+      .field select {
+        width: 100%;
+        min-height: 38px;
+        padding: 8px 10px;
+        border: 1px solid #dfe6e0;
+        border-radius: 5px;
+        background: white;
+        color: var(--ink);
+        font-size: 11px;
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 21px;
+      }
+      .secondary-button {
+        min-height: 38px;
+        padding: 0 13px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: white;
+        color: #66716b;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .notification-pop {
+        position: absolute;
+        top: 73px;
+        right: 25px;
+        z-index: 5;
+        display: none;
+        width: min(300px, calc(100vw - 30px));
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: white;
+        box-shadow: 0 12px 35px #1d33251c;
+      }
+      .notification-pop.open {
+        display: block;
+      }
+      .notification-pop strong {
+        font:
+          700 12px "Manrope",
+          sans-serif;
+      }
+      .notification-pop p {
+        margin: 9px 0 0;
+        padding-top: 9px;
+        border-top: 1px solid var(--line);
+        color: #626e66;
+        font-size: 10px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 1080px) {
+        .app-shell {
+          grid-template-columns: 214px minmax(0, 1fr);
+        }
+        .main {
+          padding-right: 23px;
+          padding-left: 23px;
+        }
+        .workspace {
+          grid-template-columns: minmax(0, 1.45fr) minmax(245px, 0.8fr);
+          gap: 12px;
+        }
+        .kpi {
+          padding: 14px;
+        }
+        .schedule-item {
+          gap: 9px;
+        }
+      }
+      @media (max-width: 850px) {
+        .app-shell {
+          grid-template-columns: 68px minmax(0, 1fr);
+        }
+        .sidebar {
+          align-items: center;
+          padding: 18px 9px;
+        }
+        .brand {
+          justify-content: center;
+          padding: 0;
+          margin-bottom: 31px;
+        }
+        .brand-copy,
+        .nav-label,
+        .nav-link span,
+        .nav-count,
+        .help-card,
+        .profile-copy,
+        .profile-more {
+          display: none;
+        }
+        .nav-list {
+          width: 100%;
+        }
+        .nav-link {
+          justify-content: center;
+          padding: 0;
+        }
+        .nav-link svg {
+          width: 19px;
+          height: 19px;
+        }
+        .profile {
+          justify-content: center;
+          padding: 14px 0 0;
+        }
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+        .right-column {
+          grid-template-columns: 1fr 1fr;
+          align-items: start;
+        }
+        .next-panel {
+          grid-column: 1 / -1;
+        }
+        .kpi-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 560px) {
+        .main {
+          padding: 17px 13px 30px;
+        }
+        .topbar {
+          margin-bottom: 22px;
+        }
+        .crumb {
+          font-size: 10px;
+        }
+        .top-actions {
+          gap: 6px;
+        }
+        .top-actions .primary-button {
+          width: 38px;
+          min-width: 38px;
+          padding: 0;
+          font-size: 0;
+        }
+        .top-actions .primary-button svg {
+          width: 17px;
+          height: 17px;
+        }
+        .welcome {
+          align-items: flex-start;
+          flex-direction: column;
+          margin-bottom: 16px;
+        }
+        .welcome p {
+          font-size: 11px;
+        }
+        .date-pill {
+          align-self: flex-start;
+        }
+        .kpi-grid {
+          gap: 8px;
+          margin-bottom: 13px;
+        }
+        .kpi {
+          min-height: 99px;
+          padding: 12px;
+        }
+        .kpi-top {
+          align-items: flex-start;
+          font-size: 10px;
+        }
+        .kpi-icon {
+          width: 25px;
+          height: 25px;
+        }
+        .kpi-value {
+          font-size: 22px;
+        }
+        .workspace {
+          gap: 12px;
+        }
+        .panel-head {
+          padding: 14px;
+        }
+        .schedule-toolbar {
+          padding: 11px 12px;
+        }
+        .schedule-list {
+          padding: 0 12px;
+        }
+        .filter-row {
+          padding: 9px 12px;
+        }
+        .day-label {
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .filter-select {
+          max-width: 100px;
+        }
+        .schedule-item {
+          grid-template-columns: 39px 3px minmax(0, 1fr);
+          gap: 8px;
+          min-height: 77px;
+        }
+        .event-status {
+          grid-column: 3;
+          justify-self: start;
+          margin-top: -16px;
+          margin-left: 25px;
+          padding: 3px 6px;
+          font-size: 8px;
+        }
+        .event-meta {
+          gap: 5px;
+          font-size: 8px;
+        }
+        .right-column {
+          grid-template-columns: 1fr;
+        }
+        .next-panel {
+          grid-column: auto;
+        }
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .field.full {
+          grid-column: auto;
+        }
+        .modal {
+          padding: 18px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg
+      aria-hidden="true"
+      width="0"
+      height="0"
+      style="position: absolute; overflow: hidden"
+    >
+      <symbol id="i-home" viewBox="0 0 24 24">
+        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z" />
+        <path d="M9 21v-7h6v7" />
+      </symbol>
+      <symbol id="i-calendar" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M16 3v4M8 3v4M3 10h18" />
+        <path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01" />
+      </symbol>
+      <symbol id="i-users" viewBox="0 0 24 24">
+        <path
+          d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6M23 11h-6"
+        />
+      </symbol>
+      <symbol id="i-user" viewBox="0 0 24 24">
+        <path
+          d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+        />
+      </symbol>
+      <symbol id="i-file" viewBox="0 0 24 24">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <path d="M14 2v6h6M8 13h8M8 17h8" />
+      </symbol>
+      <symbol id="i-wallet" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="15" rx="2" />
+        <path d="M3 9h18M16 15h2" />
+        <path d="M6 5V3h12v2" />
+      </symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24">
+        <path d="M3 3v18h18M8 15l4-4 4 3 5-7" />
+      </symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3" />
+        <path
+          d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.6.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.6-.9l-1.7.6-1.4-2.4L7.5 15a8 8 0 0 1 0-1.9L6.1 12l1.4-2.4 1.7.6a8 8 0 0 1 1.6-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.6.9l1.7-.6 1.4 2.4-1.4 1.1a8 8 0 0 1-.1 1.9Z"
+          transform="translate(-1 -1)"
+        />
+      </symbol>
+      <symbol id="i-bell" viewBox="0 0 24 24">
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-4-4" />
+      </symbol>
+      <symbol id="i-chevron-left" viewBox="0 0 24 24">
+        <path d="m15 18-6-6 6-6" />
+      </symbol>
+      <symbol id="i-chevron-right" viewBox="0 0 24 24">
+        <path d="m9 18 6-6-6-6" />
+      </symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24">
+        <path d="M5 12h14M13 6l6 6-6 6" />
+      </symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24">
+        <path
+          d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"
+        />
+        <path d="M12 9v4M12 17h.01" />
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="m5 12 4 4L19 6" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="m18 6-12 12M6 6l12 12" />
+      </symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24">
+        <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </symbol>
+    </svg>
+
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Navigation principale">
+        <div class="brand">
+          <div class="brand-mark">
+            <svg
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 11.5 12 4l9 7.5M5.5 10v9h13v-9M9 19v-5h6v5" />
+              <path d="M12 4v3" />
+            </svg>
+          </div>
+          <div class="brand-copy">
+            <div class="brand-name">maison claire</div>
+            <div class="brand-sub">Coordination &amp; suivi</div>
+          </div>
+        </div>
+        <p class="nav-label">Espace de travail</p>
+        <nav class="nav-list">
+          <button class="nav-link active" data-section="Vue d’ensemble">
+            <svg><use href="#i-home" /></svg><span>Vue d’ensemble</span>
+          </button>
+          <button class="nav-link" data-section="Planning">
+            <svg><use href="#i-calendar" /></svg><span>Planning</span>
+          </button>
+          <button class="nav-link" data-section="Bénéficiaires">
+            <svg><use href="#i-users" /></svg><span>Bénéficiaires</span>
+          </button>
+          <button class="nav-link" data-section="Intervenants">
+            <svg><use href="#i-user" /></svg><span>Intervenants</span>
+          </button>
+          <button class="nav-link" data-section="Comptes rendus">
+            <svg><use href="#i-file" /></svg><span>Comptes rendus</span
+            ><span class="nav-count">4</span>
+          </button>
+          <button class="nav-link" data-section="Facturation">
+            <svg><use href="#i-wallet" /></svg><span>Facturation</span>
+          </button>
+          <button class="nav-link" data-section="Indicateurs">
+            <svg><use href="#i-chart" /></svg><span>Indicateurs</span>
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <p class="nav-label">Organisation</p>
+          <nav class="nav-list">
+            <button class="nav-link" data-section="Paramètres">
+              <svg><use href="#i-settings" /></svg><span>Paramètres</span>
+            </button>
+          </nav>
+          <div class="help-card">
+            <strong>Besoin d’un coup de main ?</strong>
+            <p>Retrouvez les réponses aux questions fréquentes.</p>
+            <a href="#" id="helpLink">Centre d’aide&nbsp; →</a>
+          </div>
+          <div class="profile">
+            <div class="avatar">CM</div>
+            <div class="profile-copy">
+              <div class="profile-name">Claire Martin</div>
+              <div class="profile-role">Coordinatrice</div>
+            </div>
+            <span class="profile-more">···</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div class="crumb">
+            <span>Maison Claire</span><span>›</span
+            ><span id="breadcrumb">Vue d’ensemble</span>
+          </div>
+          <div class="top-actions">
+            <button
+              class="icon-button"
+              id="notificationButton"
+              aria-label="Notifications"
+              title="Notifications"
+            >
+              <svg><use href="#i-bell" /></svg
+              ><span class="notification-dot"></span>
+            </button>
+            <button class="primary-button" id="openModal">
+              <svg><use href="#i-plus" /></svg>Nouvelle intervention
+            </button>
+          </div>
+          <div class="notification-pop" id="notificationPop">
+            <strong>Notifications récentes</strong>
+            <p>
+              Compte rendu de l’intervention de 9 h en attente de validation.
+            </p>
+            <p>
+              Remplacement à confirmer pour Mme Bernard, aujourd’hui à 14 h.
+            </p>
+          </div>
+        </header>
+
+        <section class="welcome">
+          <div>
+            <h1>Bonjour Claire <span aria-hidden="true">👋</span></h1>
+            <p>Voici le point sur votre activité aujourd’hui.</p>
+          </div>
+          <div class="date-pill">
+            <svg><use href="#i-calendar" /></svg
+            ><span id="fullDate">Lundi 12 mai 2025</span>
+          </div>
+        </section>
+
+        <section class="kpi-grid" aria-label="Indicateurs du jour">
+          <article class="kpi">
+            <div class="kpi-top">
+              <span>Interventions aujourd’hui</span
+              ><span class="kpi-icon tone-green"
+                ><svg><use href="#i-calendar" /></svg
+              ></span>
+            </div>
+            <div class="kpi-value">24</div>
+            <div class="kpi-foot">
+              <strong>18 réalisées</strong> · 6 à venir
+            </div>
+          </article>
+          <article class="kpi">
+            <div class="kpi-top">
+              <span>Bénéficiaires suivis</span
+              ><span class="kpi-icon tone-blue"
+                ><svg><use href="#i-users" /></svg
+              ></span>
+            </div>
+            <div class="kpi-value">86</div>
+            <div class="kpi-foot">Sur <strong>3 secteurs</strong> actifs</div>
+          </article>
+          <article class="kpi">
+            <div class="kpi-top">
+              <span>Comptes rendus à valider</span
+              ><span class="kpi-icon tone-amber"
+                ><svg><use href="#i-file" /></svg
+              ></span>
+            </div>
+            <div class="kpi-value">4</div>
+            <div class="kpi-foot">Le plus ancien · il y a 2 h</div>
+          </article>
+          <article class="kpi">
+            <div class="kpi-top">
+              <span>Interventions à pourvoir</span
+              ><span class="kpi-icon tone-coral"
+                ><svg><use href="#i-alert" /></svg
+              ></span>
+            </div>
+            <div class="kpi-value">2</div>
+            <div class="kpi-foot">
+              Une situation <strong style="color: var(--coral)">urgente</strong>
+            </div>
+          </article>
+        </section>
+
+        <div class="workspace">
+          <section class="panel" aria-labelledby="scheduleTitle">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title" id="scheduleTitle">
+                  Planning des interventions
+                </h2>
+                <p class="panel-subtitle">
+                  Suivi de l’équipe et des bénéficiaires
+                </p>
+              </div>
+              <button class="text-button" id="seePlanning">
+                Planning complet <svg><use href="#i-arrow" /></svg>
+              </button>
+            </div>
+            <div class="schedule-toolbar">
+              <div class="day-switch">
+                <button id="previousDay" aria-label="Jour précédent">
+                  <svg><use href="#i-chevron-left" /></svg>
+                </button>
+                <div class="day-label" id="dayLabel">Lundi 12 mai</div>
+                <button id="nextDay" aria-label="Jour suivant">
+                  <svg><use href="#i-chevron-right" /></svg>
+                </button>
+              </div>
+              <div class="view-switch" aria-label="Mode d’affichage">
+                <button class="selected" data-view="Jour">Jour</button
+                ><button data-view="Semaine">Semaine</button>
+              </div>
+            </div>
+            <div class="filter-row">
+              <label class="search-box"
+                ><svg><use href="#i-search" /></svg
+                ><input
+                  id="searchInput"
+                  type="search"
+                  placeholder="Rechercher un bénéficiaire…"
+                  aria-label="Rechercher un bénéficiaire"
+              /></label>
+              <select
+                class="filter-select"
+                id="statusFilter"
+                aria-label="Filtrer par statut"
+              >
+                <option value="all">Tous les statuts</option>
+                <option value="realisee">Réalisée</option>
+                <option value="cours">En cours</option>
+                <option value="attente">À venir</option>
+                <option value="urgence">À pourvoir</option>
+              </select>
+            </div>
+            <div class="schedule-list" id="scheduleList">
+              <article
+                class="schedule-item"
+                data-name="jeanne moreau"
+                data-status="realisee"
+              >
+                <div class="time">08:00<span>1 h 00</span></div>
+                <div class="event-line"></div>
+                <div class="event-main">
+                  <div class="event-title">Aide au lever · Jeanne Moreau</div>
+                  <div class="event-meta">
+                    <span class="mini-avatar">SL</span
+                    ><span>Sophie Lemaire</span><span>·</span
+                    ><span>Centre-ville</span>
+                  </div>
+                </div>
+                <span class="event-status">Réalisée</span>
+              </article>
+              <article
+                class="schedule-item"
+                data-name="andré petit"
+                data-status="realisee"
+              >
+                <div class="time">09:30<span>1 h 30</span></div>
+                <div class="event-line blue"></div>
+                <div class="event-main">
+                  <div class="event-title">
+                    Courses &amp; accompagnement · André Petit
+                  </div>
+                  <div class="event-meta">
+                    <span
+                      class="mini-avatar"
+                      style="background: #e6ddf2; color: #6b538a"
+                      >NB</span
+                    ><span>Nicolas Bernard</span><span>·</span
+                    ><span>Les Tilleuls</span>
+                  </div>
+                </div>
+                <span class="event-status">Réalisée</span>
+              </article>
+              <article
+                class="schedule-item"
+                data-name="marie dubois"
+                data-status="cours"
+              >
+                <div class="time">11:00<span>45 min</span></div>
+                <div class="event-line amber"></div>
+                <div class="event-main">
+                  <div class="event-title">
+                    Préparation du déjeuner · Marie Dubois
+                  </div>
+                  <div class="event-meta">
+                    <span
+                      class="mini-avatar"
+                      style="background: #f4e4cd; color: #8b662d"
+                      >AD</span
+                    ><span>Amel Diallo</span><span>·</span
+                    ><span>Saint-Roch</span>
+                  </div>
+                </div>
+                <span class="event-status progress">En cours</span>
+              </article>
+              <article
+                class="schedule-item"
+                data-name="pierre garnier"
+                data-status="attente"
+              >
+                <div class="time">13:00<span>1 h 00</span></div>
+                <div class="event-line"></div>
+                <div class="event-main">
+                  <div class="event-title">
+                    Aide à la toilette · Pierre Garnier
+                  </div>
+                  <div class="event-meta">
+                    <span
+                      class="mini-avatar"
+                      style="background: #dce7f5; color: #4d6590"
+                      >ÉR</span
+                    ><span>Émilie Roux</span><span>·</span
+                    ><span>Centre-ville</span>
+                  </div>
+                </div>
+                <span class="event-status waiting">À venir</span>
+              </article>
+              <article
+                class="schedule-item"
+                data-name="lucette bernard"
+                data-status="urgence"
+              >
+                <div class="time">14:00<span>1 h 00</span></div>
+                <div class="event-line coral"></div>
+                <div class="event-main">
+                  <div class="event-title">
+                    Visite de convivialité · Lucette Bernard
+                  </div>
+                  <div class="event-meta">
+                    <span
+                      class="mini-avatar"
+                      style="background: #f5e1db; color: #ab5945"
+                      >—</span
+                    ><span>Intervenant à affecter</span><span>·</span
+                    ><span>Les Tilleuls</span>
+                  </div>
+                </div>
+                <span class="event-status urgent">À pourvoir</span>
+              </article>
+              <article
+                class="schedule-item"
+                data-name="claude robert"
+                data-status="attente"
+              >
+                <div class="time">15:30<span>1 h 00</span></div>
+                <div class="event-line blue"></div>
+                <div class="event-main">
+                  <div class="event-title">
+                    Sortie accompagnée · Claude Robert
+                  </div>
+                  <div class="event-meta">
+                    <span
+                      class="mini-avatar"
+                      style="background: #e6ddf2; color: #6b538a"
+                      >NB</span
+                    ><span>Nicolas Bernard</span><span>·</span
+                    ><span>Saint-Roch</span>
+                  </div>
+                </div>
+                <span class="event-status waiting">À venir</span>
+              </article>
+            </div>
+            <div class="empty-state" id="emptyState">
+              Aucune intervention ne correspond à votre recherche.
+            </div>
+          </section>
+
+          <aside class="right-column">
+            <section class="panel alert-panel">
+              <div class="panel-head">
+                <div class="alert-title-wrap">
+                  <div class="alert-mark">
+                    <svg><use href="#i-alert" /></svg>
+                  </div>
+                  <div>
+                    <h2 class="panel-title">À traiter</h2>
+                    <p class="panel-subtitle">Nécessite votre attention</p>
+                  </div>
+                </div>
+                <span class="alert-count">2 actions</span>
+              </div>
+              <div class="alert-body">
+                <article class="alert-item">
+                  <div class="alert-item-top">
+                    <div class="alert-name">Remplacement nécessaire</div>
+                    <div class="alert-time">Aujourd’hui · 14:00</div>
+                  </div>
+                  <div class="alert-detail">
+                    Lucette Bernard · visite de convivialité<br />Intervenant
+                    absent, affectation requise.
+                  </div>
+                  <button class="alert-action" data-action="replacement">
+                    Trouver un remplaçant →
+                  </button>
+                </article>
+                <article class="alert-item">
+                  <div class="alert-item-top">
+                    <div class="alert-name">Compte rendu à valider</div>
+                    <div class="alert-time">Il y a 2 h</div>
+                  </div>
+                  <div class="alert-detail">
+                    Jeanne Moreau · aide au lever<br />Compte rendu transmis par
+                    Sophie Lemaire.
+                  </div>
+                  <button class="alert-action" data-action="report">
+                    Consulter le compte rendu →
+                  </button>
+                </article>
+              </div>
+            </section>
+            <section class="panel progress-panel">
+              <div class="panel-head">
+                <div>
+                  <h2 class="panel-title">Avancement du jour</h2>
+                  <p class="panel-subtitle">Interventions planifiées</p>
+                </div>
+                <span class="kpi-icon tone-green"
+                  ><svg><use href="#i-chart" /></svg
+                ></span>
+              </div>
+              <div class="progress-content">
+                <div class="progress-top">
+                  <div class="progress-number">75%</div>
+                  <div class="progress-note">18 sur 24 terminées</div>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill"></div>
+                </div>
+                <div class="progress-legend">
+                  <span><i class="legend-dot"></i>Réalisées&nbsp; 18</span
+                  ><span
+                    ><i class="legend-dot pending"></i>Restantes&nbsp; 6</span
+                  >
+                </div>
+              </div>
+            </section>
+            <div class="next-panel">
+              <div class="next-icon">
+                <svg><use href="#i-clock" /></svg>
+              </div>
+              <div class="next-text">
+                <strong>Prochaine échéance</strong><br />Valider les comptes
+                rendus avant 17:00.
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div
+      class="modal-backdrop"
+      id="modalBackdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+    >
+      <form class="modal" id="interventionForm">
+        <div class="modal-header">
+          <div>
+            <h2 id="modalTitle">Nouvelle intervention</h2>
+            <p>Planifiez un créneau pour un bénéficiaire.</p>
+          </div>
+          <button
+            type="button"
+            class="close-button"
+            id="closeModal"
+            aria-label="Fermer"
+          >
+            <svg><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="beneficiary">Bénéficiaire</label
+            ><select id="beneficiary" required>
+              <option value="">Sélectionner une personne</option>
+              <option>Jeanne Moreau</option>
+              <option>André Petit</option>
+              <option>Marie Dubois</option>
+              <option>Pierre Garnier</option>
+              <option>Lucette Bernard</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="interventionType">Type d’intervention</label
+            ><select id="interventionType" required>
+              <option>Aide à la personne</option>
+              <option>Soins et hygiène</option>
+              <option>Accompagnement</option>
+              <option>Lien social</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="intervenant">Intervenant</label
+            ><select id="intervenant" required>
+              <option value="">À affecter</option>
+              <option>Sophie Lemaire</option>
+              <option>Nicolas Bernard</option>
+              <option>Amel Diallo</option>
+              <option>Émilie Roux</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="interventionDate">Date</label
+            ><input id="interventionDate" type="date" required />
+          </div>
+          <div class="field">
+            <label for="interventionTime">Heure de début</label
+            ><input id="interventionTime" type="time" value="16:00" required />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="secondary-button" id="cancelModal">
+            Annuler</button
+          ><button type="submit" class="primary-button">
+            Créer l’intervention
+          </button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
