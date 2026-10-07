@@ -42,7 +42,7 @@ JOIN Intervention b
  AND a.id_intervention < b.id_intervention
  AND a.heure_debut < b.heure_fin
  AND b.heure_debut < a.heure_fin
-WHERE a.statut <> 'annuléee' AND b.statut <> 'annulee';
+WHERE a.statut <> 'annulee' AND b.statut <> 'annulee';
 -- Utilisation : SELECT * FROM v_conflits_intervenant;   (doit être vide avec les données de test)
 
 -- Pour supprimer une vue : DROP VIEW v_conflits_intervenant;

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 06, 2026 at 10:42 AM
+-- Generation Time: Oct 07, 2026 at 08:01 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -367,6 +367,44 @@ CREATE TABLE `paiement` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `paiement_banque`
+--
+
+CREATE TABLE `paiement_banque` (
+  `id_paiement` int(11) NOT NULL,
+  `nom_banque` varchar(100) NOT NULL,
+  `type_operation` varchar(20) NOT NULL,
+  `reference` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `paiement_espece`
+--
+
+CREATE TABLE `paiement_espece` (
+  `id_paiement` int(11) NOT NULL,
+  `recu_par` varchar(100) DEFAULT NULL,
+  `numero_recu` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `paiement_operateur`
+--
+
+CREATE TABLE `paiement_operateur` (
+  `id_paiement` int(11) NOT NULL,
+  `nom_operateur` varchar(50) NOT NULL,
+  `numero_telephone` varchar(20) DEFAULT NULL,
+  `reference_transaction` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `prise_en_charge`
 --
 
@@ -715,6 +753,24 @@ ALTER TABLE `paiement`
   ADD KEY `fk_paiement_facture` (`id_facture`);
 
 --
+-- Indexes for table `paiement_banque`
+--
+ALTER TABLE `paiement_banque`
+  ADD PRIMARY KEY (`id_paiement`);
+
+--
+-- Indexes for table `paiement_espece`
+--
+ALTER TABLE `paiement_espece`
+  ADD PRIMARY KEY (`id_paiement`);
+
+--
+-- Indexes for table `paiement_operateur`
+--
+ALTER TABLE `paiement_operateur`
+  ADD PRIMARY KEY (`id_paiement`);
+
+--
 -- Indexes for table `prise_en_charge`
 --
 ALTER TABLE `prise_en_charge`
@@ -997,6 +1053,24 @@ ALTER TABLE `notification`
 --
 ALTER TABLE `paiement`
   ADD CONSTRAINT `fk_paiement_facture` FOREIGN KEY (`id_facture`) REFERENCES `facture` (`id_facture`);
+
+--
+-- Constraints for table `paiement_banque`
+--
+ALTER TABLE `paiement_banque`
+  ADD CONSTRAINT `paiement_banque_ibfk_1` FOREIGN KEY (`id_paiement`) REFERENCES `paiement` (`id_paiement`);
+
+--
+-- Constraints for table `paiement_espece`
+--
+ALTER TABLE `paiement_espece`
+  ADD CONSTRAINT `paiement_espece_ibfk_1` FOREIGN KEY (`id_paiement`) REFERENCES `paiement` (`id_paiement`);
+
+--
+-- Constraints for table `paiement_operateur`
+--
+ALTER TABLE `paiement_operateur`
+  ADD CONSTRAINT `paiement_operateur_ibfk_1` FOREIGN KEY (`id_paiement`) REFERENCES `paiement` (`id_paiement`);
 
 --
 -- Constraints for table `prise_en_charge`
