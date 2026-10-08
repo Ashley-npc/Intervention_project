@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 07, 2026 at 10:15 AM
+-- Generation Time: Oct 07, 2026 at 01:58 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -301,7 +301,10 @@ CREATE TABLE `lien_beneficiaire_aidant` (
   `id_aidant` int(11) NOT NULL,
   `lien_parente` varchar(50) DEFAULT NULL,
   `autorisations` text DEFAULT NULL,
-  `date_autorisation` date DEFAULT NULL
+  `date_autorisation` date DEFAULT NULL,
+  `voit_planning` tinyint(1) NOT NULL DEFAULT 1,
+  `voit_comptes_rendus` tinyint(1) NOT NULL DEFAULT 0,
+  `voit_medical` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
