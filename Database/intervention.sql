@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 06, 2026 at 10:42 AM
+-- Generation Time: Oct 07, 2026 at 01:58 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -301,7 +301,10 @@ CREATE TABLE `lien_beneficiaire_aidant` (
   `id_aidant` int(11) NOT NULL,
   `lien_parente` varchar(50) DEFAULT NULL,
   `autorisations` text DEFAULT NULL,
-  `date_autorisation` date DEFAULT NULL
+  `date_autorisation` date DEFAULT NULL,
+  `voit_planning` tinyint(1) NOT NULL DEFAULT 1,
+  `voit_comptes_rendus` tinyint(1) NOT NULL DEFAULT 0,
+  `voit_medical` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -362,6 +365,44 @@ CREATE TABLE `paiement` (
   `mode` varchar(20) NOT NULL,
   `payeur` varchar(30) DEFAULT NULL,
   `id_facture` int(11) NOT NULL
+) ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `paiement_banque`
+--
+
+CREATE TABLE `paiement_banque` (
+  `id_paiement` int(11) NOT NULL,
+  `nom_banque` varchar(100) NOT NULL,
+  `type_operation` varchar(20) NOT NULL,
+  `reference` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `paiement_espece`
+--
+
+CREATE TABLE `paiement_espece` (
+  `id_paiement` int(11) NOT NULL,
+  `recu_par` varchar(100) DEFAULT NULL,
+  `numero_recu` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `paiement_operateur`
+--
+
+CREATE TABLE `paiement_operateur` (
+  `id_paiement` int(11) NOT NULL,
+  `nom_operateur` varchar(50) NOT NULL,
+  `numero_telephone` varchar(20) DEFAULT NULL,
+  `reference_transaction` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -465,17 +506,18 @@ CREATE TABLE `utilisateur` (
   `mot_de_passe` varchar(255) NOT NULL,
   `actif` tinyint(1) NOT NULL DEFAULT 1,
   `derniere_connexion` datetime DEFAULT NULL,
-  `id_role` int(11) NOT NULL
+  `id_role` int(11) NOT NULL,
+  `doit_changer_mot_de_passe` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `utilisateur`
 --
 
-INSERT INTO `utilisateur` (`id_utilisateur`, `identifiant`, `mot_de_passe`, `actif`, `derniere_connexion`, `id_role`) VALUES
-(1, 'admin', 'HASH_A_REMPLACER', 1, NULL, 1),
-(2, 'coord1', 'HASH_A_REMPLACER', 1, NULL, 2),
-(3, 'inter1', 'HASH_A_REMPLACER', 1, NULL, 3);
+INSERT INTO `utilisateur` (`id_utilisateur`, `identifiant`, `mot_de_passe`, `actif`, `derniere_connexion`, `id_role`, `doit_changer_mot_de_passe`) VALUES
+(1, 'admin', 'HASH_A_REMPLACER', 1, NULL, 1, 0),
+(2, 'coord1', 'HASH_A_REMPLACER', 1, NULL, 2, 0),
+(3, 'inter1', 'HASH_A_REMPLACER', 1, NULL, 3, 0);
 
 -- --------------------------------------------------------
 
@@ -515,6 +557,19 @@ CREATE TABLE `v_conflits_intervenant` (
 ,`date` date
 ,`intervention_a` int(11)
 ,`intervention_b` int(11)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `v_factures_soldes`
+-- (See below for the actual view)
+--
+CREATE TABLE `v_factures_soldes` (
+`id_facture` int(11)
+,`montant_total` decimal(10,2)
+,`montant_paye` decimal(32,2)
+,`montant_restant` decimal(33,2)
 );
 
 -- --------------------------------------------------------
@@ -567,6 +622,15 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 DROP TABLE IF EXISTS `v_conflits_intervenant`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_conflits_intervenant`  AS SELECT `a`.`id_intervenant` AS `id_intervenant`, `a`.`date` AS `date`, `a`.`id_intervention` AS `intervention_a`, `b`.`id_intervention` AS `intervention_b` FROM (`intervention` `a` join `intervention` `b` on(`a`.`id_intervenant` = `b`.`id_intervenant` and `a`.`date` = `b`.`date` and `a`.`id_intervention` < `b`.`id_intervention` and `a`.`heure_debut` < `b`.`heure_fin` and `b`.`heure_debut` < `a`.`heure_fin`)) WHERE `a`.`statut` <> 'annul‚e' AND `b`.`statut` <> 'annul‚e' ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_factures_soldes`
+--
+DROP TABLE IF EXISTS `v_factures_soldes`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_factures_soldes`  AS SELECT `facture`.`id_facture` AS `id_facture`, `facture`.`montant_total` AS `montant_total`, coalesce(sum(`paiement`.`montant`),0) AS `montant_paye`, `facture`.`montant_total`- coalesce(sum(`paiement`.`montant`),0) AS `montant_restant` FROM (`facture` left join `paiement` on(`paiement`.`id_facture` = `facture`.`id_facture`)) GROUP BY `facture`.`id_facture`, `facture`.`montant_total` ;
 
 -- --------------------------------------------------------
 
@@ -713,6 +777,24 @@ ALTER TABLE `organisme_payeur`
 ALTER TABLE `paiement`
   ADD PRIMARY KEY (`id_paiement`),
   ADD KEY `fk_paiement_facture` (`id_facture`);
+
+--
+-- Indexes for table `paiement_banque`
+--
+ALTER TABLE `paiement_banque`
+  ADD PRIMARY KEY (`id_paiement`);
+
+--
+-- Indexes for table `paiement_espece`
+--
+ALTER TABLE `paiement_espece`
+  ADD PRIMARY KEY (`id_paiement`);
+
+--
+-- Indexes for table `paiement_operateur`
+--
+ALTER TABLE `paiement_operateur`
+  ADD PRIMARY KEY (`id_paiement`);
 
 --
 -- Indexes for table `prise_en_charge`
@@ -997,6 +1079,27 @@ ALTER TABLE `notification`
 --
 ALTER TABLE `paiement`
   ADD CONSTRAINT `fk_paiement_facture` FOREIGN KEY (`id_facture`) REFERENCES `facture` (`id_facture`);
+
+--
+-- Constraints for table `paiement_banque`
+--
+ALTER TABLE `paiement_banque`
+  ADD CONSTRAINT `fk_paiement_banque_paiement` FOREIGN KEY (`id_paiement`) REFERENCES `paiement` (`id_paiement`),
+  ADD CONSTRAINT `paiement_banque_ibfk_1` FOREIGN KEY (`id_paiement`) REFERENCES `paiement` (`id_paiement`);
+
+--
+-- Constraints for table `paiement_espece`
+--
+ALTER TABLE `paiement_espece`
+  ADD CONSTRAINT `fk_paiement_espece_paiement` FOREIGN KEY (`id_paiement`) REFERENCES `paiement` (`id_paiement`),
+  ADD CONSTRAINT `paiement_espece_ibfk_1` FOREIGN KEY (`id_paiement`) REFERENCES `paiement` (`id_paiement`);
+
+--
+-- Constraints for table `paiement_operateur`
+--
+ALTER TABLE `paiement_operateur`
+  ADD CONSTRAINT `fk_paiement_operateur_paiement` FOREIGN KEY (`id_paiement`) REFERENCES `paiement` (`id_paiement`),
+  ADD CONSTRAINT `paiement_operateur_ibfk_1` FOREIGN KEY (`id_paiement`) REFERENCES `paiement` (`id_paiement`);
 
 --
 -- Constraints for table `prise_en_charge`

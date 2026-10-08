@@ -1,0 +1,87 @@
+/* Login : style minimaliste (aplats, filets fins, aucune ombre floue ni animation) */
+:root {
+  --bg: #e9eef3;            /* fond et surfaces partagent presque la même teinte */
+  --ink: #1f2d3a;
+  --muted: #5a6877;
+  --brand: #1f6f8b;
+  --brand-dark: #154d62;
+  --light: #ffffff;         /* ombre claire (haut-gauche) */
+  --dark: #c5cfd9;          /* ombre sombre (bas-droite) */
+  --font: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.5; }
+
+.page { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+.login { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 22px; }
+
+.brand { font-size: 22px; font-weight: 600; color: var(--brand-dark); text-align: center; }
+.brand small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+
+/* Carte en relief */
+.card {
+  background: var(--bg); border-radius: 10px; padding: 30px 26px;
+  display: flex; flex-direction: column; gap: 20px;
+  box-shadow: none;
+}
+h1 { margin: 0; font-size: 24px; font-weight: 600; text-align: center; }
+
+.field { display: flex; flex-direction: column; gap: 8px; }
+label { font-size: 13px; font-weight: 600; color: var(--muted); padding-left: 6px; }
+
+/* Champs « creusés » */
+input {
+  font: inherit; color: var(--ink); width: 100%; padding: 13px 16px;
+  border: 0; border-radius: 8px; background: var(--bg);
+  box-shadow: none;
+  
+}
+input:focus { outline: none; box-shadow: none; }
+
+/* Bouton en relief, qui s'enfonce au clic */
+.btn {
+  font: inherit; font-weight: 600; width: 100%; padding: 13px 16px; cursor: pointer;
+  border: 0; border-radius: 8px; background: var(--brand); color: #fff;
+  box-shadow: none;
+  
+}
+.btn:hover { background: var(--brand-dark); }
+.btn:active { box-shadow: none; }
+.btn:focus-visible { outline: 2px solid var(--brand-dark); outline-offset: 3px; }
+
+.note { margin: 0; font-size: 13px; color: var(--muted); text-align: center; }
+
+@media (max-width: 480px) {
+  body { font-size: 14px; }
+  .page { padding: 12px; place-items: start center; padding-top: 8vh; }
+  .login { gap: 14px; }
+  .brand { font-size: 18px; }
+  .brand small { font-size: 12px; }
+  .card { padding: 20px 16px; gap: 14px; border-radius: 10px; box-shadow: none; }
+  h1 { font-size: 20px; }
+  label { font-size: 12px; }
+  input { font-size: 16px; padding: 10px 13px; box-shadow: none; }
+  .btn { font-size: 15px; padding: 11px 14px; box-shadow: none; }
+  .note { font-size: 12px; }
+}
+@media (max-width: 340px) {
+  .page { padding: 8px; padding-top: 4vh; }
+  .card { padding: 16px 12px; }
+  h1 { font-size: 18px; }
+}
+@media (max-height: 480px) {
+  .page { padding-top: 8px; place-items: start center; }
+  .login { gap: 8px; }
+  .card { gap: 8px; padding: 12px; }
+  .brand small, .note { display: none; }
+  input { padding: 6px 10px; }
+}
+
+/* ---------- Surcharge minimaliste ---------- */
+:root { --bg: #f4f6f8; --line: #dde3e9; }
+.card { background: #fff; border: 1px solid var(--line); }
+input { background: #fff; border: 1px solid #c4ced7; }
+input:focus { outline: 2px solid var(--brand); outline-offset: 0; }
+.btn { border: 1px solid var(--brand); }
+.btn:active { background: var(--brand-dark); }
+.erreur { margin: 0; padding: 10px 12px; border-radius: 8px; background: #fbe6e4; color: #7d1a14; font-size: 14px; border: 1px solid #efc2be; }
