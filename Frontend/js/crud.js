@@ -47,7 +47,7 @@
         document.getElementById('compte').textContent = items.length + ' résultat' + (items.length > 1 ? 's' : '');
         if (!items.length) { document.getElementById('tableau').innerHTML = '<p class="empty">Aucun ' + R.singulier + ' trouvé.</p>'; return; }
         h = '<div class="rail-nav"><button type="button" class="btn small" id="prec" aria-label="Précédents">‹</button>' +
-            '<span class="muted">Faites défiler pour voir la suite</span><button type="button" class="btn small" id="suiv" aria-label="Suivants">›</button></div><div class="rail" id="rail">';
+          '<span class="muted">Faites défiler pour voir la suite</span><button type="button" class="btn small" id="suiv" aria-label="Suivants">›</button></div><div class="rail" id="rail">';
         for (var i = 0; i < items.length; i++) {
           var x = items[i];
           h += '<article class="pers' + (x.inactif ? ' off' : '') + '"><h3><a href="' + R.pages.fiche + '?id=' + x.id + '">' + esc(R.nomComplet(x)) + '</a></h3>' + badgeEtat(x.inactif) + '<dl>';
@@ -77,8 +77,8 @@
       if (!r.ok) { erreurPage(r.data.message || 'Erreur.'); return; }
       var x = r.data.item, h = '';
       h += '<div class="page-head"><div><h1>' + esc(R.nomComplet(x)) + ' ' + badgeEtat(x.inactif) + '</h1><p><a href="' + R.pages.liste + '">← ' + R.titre + '</a></p></div>' +
-           '<div class="actions"><a class="btn" href="' + R.pages.form + '?id=' + x.id + '">Modifier</a>' +
-           '<button type="button" class="btn secondary" id="etat">' + (x.inactif ? R.etat.retour : R.etat.action) + '</button></div></div>';
+        '<div class="actions"><a class="btn" href="' + R.pages.form + '?id=' + x.id + '">Modifier</a>' +
+        '<button type="button" class="btn secondary" id="etat">' + (x.inactif ? R.etat.retour : R.etat.action) + '</button></div></div>';
       h += '<p class="msg-err" id="msg" hidden></p>';
       for (var s = 0; s < R.sections.length; s++) {
         var sec = R.sections[s];
@@ -95,12 +95,12 @@
       if (!it.length) h += '<p class="empty">Aucune intervention.</p>';
       else {
         h += '<div class="table-wrap stack"><table><thead><tr><th>Date</th><th>Horaire</th><th>Type</th><th>' + (R.autrePersonne === 'intervenant' ? 'Intervenant' : 'Bénéficiaire') +
-             '</th><th>Statut</th></tr></thead><tbody>';
+          '</th><th>Statut</th></tr></thead><tbody>';
         for (var i = 0; i < it.length; i++) {
           var a = it[i];
           h += '<tr><td data-l="Date">' + dateFr(a.date) + '</td><td data-l="Horaire">' + heure(a.heure_debut) + '–' + heure(a.heure_fin) + '</td><td data-l="Type">' + esc(a.type) +
-               '</td><td data-l="' + (R.autrePersonne === 'intervenant' ? 'Intervenant' : 'Bénéficiaire') + '">' + esc(a[R.autrePersonne + '_prenom'] + ' ' + a[R.autrePersonne + '_nom']) +
-               '</td><td data-l="Statut"><span class="badge">' + esc(a.statut) + '</span></td></tr>';
+            '</td><td data-l="' + (R.autrePersonne === 'intervenant' ? 'Intervenant' : 'Bénéficiaire') + '">' + esc(a[R.autrePersonne + '_prenom'] + ' ' + a[R.autrePersonne + '_nom']) +
+            '</td><td data-l="Statut"><span class="badge">' + esc(a.statut) + '</span></td></tr>';
         }
         h += '</tbody></table></div>';
       }
@@ -124,7 +124,7 @@
     var id = param('id');
     function dessiner(x) {
       var h = '<div class="page-head"><div><h1>' + (id ? 'Modifier ' + esc(R.nomComplet(x)) : R.nouveau) + '</h1><p><a href="' + (id ? R.pages.fiche + '?id=' + id : R.pages.liste) + '">← Annuler</a></p></div></div>' +
-              '<form id="f" novalidate><p class="msg-err" id="msg" hidden></p>';
+        '<form id="f" novalidate><p class="msg-err" id="msg" hidden></p>';
       for (var s = 0; s < R.sections.length; s++) {
         var sec = R.sections[s];
         h += '<section class="card"><header><h2>' + sec.titre + '</h2></header><div class="form-grid">';
