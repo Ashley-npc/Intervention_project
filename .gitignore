@@ -1,0 +1,8 @@
+# Ignore a specific file
+.env
+
+# Ignore all log files
+*.log
+
+# Ignore a specific folder
+database/
