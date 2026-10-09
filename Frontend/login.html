@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion · Suivi à domicile</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <main class="page">
+    <div class="login">
+      <div class="brand">Suivi à domicile<small>Gestion des interventions et des bénéficiaires</small></div>
+
+      <form class="card" id="form-login">
+        <h1>Connexion</h1>
+
+        <p class="erreur" id="erreur" role="alert" hidden></p>
+
+        <div class="field">
+          <label for="identifiant">Identifiant</label>
+          <input type="text" id="identifiant" autocomplete="username" required autofocus>
+        </div>
+
+        <div class="field">
+          <label for="mot_de_passe">Mot de passe</label>
+          <input type="password" id="mot_de_passe" autocomplete="current-password" required>
+        </div>
+
+        <button type="submit" class="btn">Se connecter</button>
+
+        <p class="note">Pas de compte ? Il est créé par ton coordinateur ou l'administrateur.</p>
+      </form>
+    </div>
+  </main>
+  <script src="js/api.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

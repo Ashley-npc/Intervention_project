@@ -1,0 +1,4 @@
+# Apache : interdit l'accès direct aux fichiers internes (réglages de la base, outils). Les fichiers de api/ restent accessibles.
+<FilesMatch "^(config|db|auth|http)\.php$">
+  Require all denied
+</FilesMatch>
