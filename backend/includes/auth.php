@@ -2,6 +2,8 @@
 // Session et accès à l'utilisateur connecté. Réutilisé par toutes les pages de api/.
 require_once __DIR__ . '/http.php';
 
+date_default_timezone_set('Indian/Antananarivo');   // dates (création, « à venir ») à l'heure locale
+
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax', 'path' => '/']);
     session_start();

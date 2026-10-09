@@ -28,3 +28,10 @@ function corps_json(): array {
     if (!is_array($data)) json_out(400, ['ok' => false, 'message' => 'Requête invalide.']);
     return $data;
 }
+
+// Toute erreur imprévue (base injoignable, colonne manquante…) devient une réponse JSON propre.
+// Le détail est écrit dans la console du serveur PHP (php -S), pas envoyé au navigateur.
+set_exception_handler(function ($e) {
+    error_log('[API] ' . get_class($e) . ' : ' . $e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ')');
+    json_out(500, ['ok' => false, 'message' => 'Erreur serveur : voir la console du serveur PHP.']);
+});
