@@ -10,7 +10,7 @@ Shell.demarrer(function (contenu) {
     var x = r.data.item, b = r.data.beneficiaire, cr = r.data.compte_rendu;
     var passee = x.date <= aujourdhui(), annulee = /^a/.test(x.statut), verrou = cr && cr.valide_par_coordinateur;
     var h = '<div class="page-head"><div><h1>' + esc(b.prenom + ' ' + b.nom) + '</h1><p><a href="' + FRONT + 'espace-intervenant/planning.html?date=' + x.date + '">← Mon planning</a> · ' + badgeStatut(x) + '</p></div></div>' +
-      '<section class="card"><header><h2>Intervention</h2></header><dl class="facts">' + ligne('Date', dateLongue(x.date)) + ligne('Horaire', x.heure_debut + ' – ' + x.heure_fin) + ligne('Type', x.type) +
+      '<section class="card"><header><h2>Intervention</h2></header><dl class="facts">' + ligne('Date', dateLongue(x.date)) + ligne('Horaire', x.heure_debut + ' – ' + x.heure_fin) + ligne('Type', lib(x.type)) +
       ligne('Lieu', x.lieu === 'domicile' ? 'Au domicile' : 'Extérieur : ' + (x.adresse_exterieur || '')) + '</dl></section>' +
       '<section class="card"><header><h2>Bénéficiaire</h2></header><dl class="facts">' + ligne('Adresse', b.adresse) + ligne('Téléphone', b.telephone) + ligne('Accès au domicile', b.acces_domicile) +
       ligne('Animaux', b.animaux) + ligne('Habitudes', b.habitudes) + ligne('Horaires préférés', b.horaires_preferes) + '</dl></section>';
@@ -22,7 +22,7 @@ Shell.demarrer(function (contenu) {
         '<p class="msg-err" id="msg" hidden></p><div class="form-grid">' +
         '<div class="field"><label for="c_duree_reelle">Durée réelle (minutes)</label><input id="c_duree_reelle" name="duree_reelle" type="number" min="1" max="1440" inputmode="numeric" value="' + esc(v.duree_reelle || '') + '"' + (verrou ? ' disabled' : '') + '><span class="field-err" id="e_duree_reelle"></span></div>' +
         '<div class="field"><label for="c_etat_beneficiaire">État du bénéficiaire</label><select id="c_etat_beneficiaire" name="etat_beneficiaire"' + (verrou ? ' disabled' : '') + '>' +
-        [['', '—'], ['bon', 'Bon'], ['moyen', 'Moyen'], ['préoccupant', 'Préoccupant']].map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === (v.etat_beneficiaire || '') ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><span class="field-err" id="e_etat_beneficiaire"></span></div>' +
+        [['', '—'], ['bon', 'Bon'], ['moyen', 'Moyen'], ['preoccupant', 'Préoccupant']].map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === (v.etat_beneficiaire || '') ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><span class="field-err" id="e_etat_beneficiaire"></span></div>' +
         '<div class="field large"><label for="c_actes_realises">Actes réalisés *</label><textarea id="c_actes_realises" name="actes_realises" rows="4"' + (verrou ? ' disabled' : '') + '>' + esc(v.actes_realises || '') + '</textarea><span class="field-err" id="e_actes_realises"></span></div>' +
         '<div class="field large"><label for="c_observations">Observations</label><textarea id="c_observations" name="observations" rows="3"' + (verrou ? ' disabled' : '') + '>' + esc(v.observations || '') + '</textarea><span class="field-err" id="e_observations"></span></div></div>' +
         (verrou ? '<p class="muted">Compte rendu validé par le coordinateur : il ne peut plus être modifié.</p>' : '<div class="actions"><button class="btn" type="submit" id="ok">' + (cr ? 'Enregistrer les modifications' : 'Enregistrer le compte rendu') + '</button></div>') +

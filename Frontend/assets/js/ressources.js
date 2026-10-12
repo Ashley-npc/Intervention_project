@@ -38,19 +38,44 @@ var RESSOURCES = {
     recherche: 'Nom ou prénom',
     colonnes: [
       { k: 'nom', l: 'Nom', f: function (x) { return x.nom + ' ' + x.prenom; } },
-      { k: 'statut', l: 'Statut' }, { k: 'telephone', l: 'Téléphone' }, { k: 'nb_interventions', l: 'Interventions' }
+      { k: 'statut', l: 'Statut', f: function (x) { return lib(x.statut); } }, { k: 'telephone', l: 'Téléphone' }, { k: 'nb_interventions', l: 'Interventions' }
     ],
     nomComplet: function (x) { return x.prenom + ' ' + x.nom; },
     sections: [
       { titre: 'Identité', champs: [
         { k: 'nom', l: 'Nom', requis: 1 }, { k: 'prenom', l: 'Prénom', requis: 1 },
-        { k: 'statut', l: 'Statut', type: 'select', requis: 1, options: [['', '— choisir —'], ['salarié', 'Salarié'], ['bénévole', 'Bénévole'], ['prestataire', 'Prestataire']] } ] },
+        { k: 'statut', l: 'Statut', type: 'select', requis: 1, aff: lib, options: [['', '— choisir —'], ['salarie', 'Salarié'], ['benevole', 'Bénévole'], ['prestataire', 'Prestataire']] } ] },
       { titre: 'Contact', champs: [
         { k: 'adresse', l: 'Adresse', large: 1 }, { k: 'telephone', l: 'Téléphone', type: 'tel' }, { k: 'courriel', l: 'Courriel', type: 'email' } ] },
       { titre: 'Préférences', champs: [
         { k: 'types_beneficiaires_preferes', l: 'Bénéficiaires préférés', large: 1 },
         { k: 'horaires_preferes', l: 'Horaires préférés', large: 1 } ] }
     ]
+  }
+  ,
+  aidants: {
+    api: 'aidants.php', singulier: 'proche aidant', titre: 'Proches aidants', nouveau: 'Nouveau proche aidant',
+    pages: { liste: 'aidants/liste.html', fiche: 'aidants/fiche.html', form: 'aidants/form.html' },
+    etat: { off: 'Désactivé', action: 'Désactiver', retour: 'Réactiver', voirTous: 'Afficher aussi les désactivés' },
+    recherche: 'Nom ou prénom',
+    colonnes: [
+      { k: 'nom', l: 'Nom', f: function (x) { return x.nom + ' ' + x.prenom; } },
+      { k: 'telephone', l: 'Téléphone' }, { k: 'preference_communication', l: 'Préférence' }, { k: 'nb_beneficiaires', l: 'Bénéficiaires liés' }
+    ],
+    nomComplet: function (x) { return x.prenom + ' ' + x.nom; },
+    sections: [
+      { titre: 'Identité', champs: [ { k: 'nom', l: 'Nom', requis: 1 }, { k: 'prenom', l: 'Prénom', requis: 1 } ] },
+      { titre: 'Contact', champs: [
+        { k: 'adresse', l: 'Adresse', large: 1 }, { k: 'telephone', l: 'Téléphone', type: 'tel' }, { k: 'courriel', l: 'Courriel', type: 'email' },
+        { k: 'preference_communication', l: 'Préférence de contact', type: 'select', options: [['', '—'], ['courriel', 'Courriel'], ['sms', 'SMS'], ['appel', 'Appel']] } ] }
+    ],
+    // Sous la fiche : les bénéficiaires auxquels cette personne est liée.
+    apresFiche: function (x, contenu, data) {
+      var l = data.beneficiaires_lies || [], h = '<section class="card"><header><h2>Bénéficiaires suivis</h2></header>';
+      if (!l.length) h += '<p class="empty">Aucun bénéficiaire lié. Le lien se crée depuis la fiche du bénéficiaire.</p>';
+      else { h += '<ul class="agenda">'; for (var i = 0; i < l.length; i++) h += '<li><div><b><a href="' + FRONT + 'beneficiaires/fiche.html?id=' + l[i].id + '">' + esc(l[i].prenom + ' ' + l[i].nom) + '</a></b><span>' + esc(l[i].lien_parente || 'lien non précisé') + '</span></div></li>'; h += '</ul>'; }
+      contenu.insertAdjacentHTML('beforeend', h + '</section>');
+    }
   }
 };
 

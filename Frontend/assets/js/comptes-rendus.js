@@ -17,7 +17,7 @@ Shell.demarrer(function (contenu) {
         var x = items[j];
         h += '<article class="pers"><h3>' + esc(x.beneficiaire_prenom + ' ' + x.beneficiaire_nom) + '</h3>' + badgeStatut(x) + '<dl>' +
              '<div><dt>Date</dt><dd>' + dateFr(x.date) + ' · ' + x.heure_debut + '–' + x.heure_fin + '</dd></div>' +
-             '<div><dt>Intervenant</dt><dd>' + esc(x.intervenant_prenom + ' ' + x.intervenant_nom) + '</dd></div><div><dt>Type</dt><dd>' + esc(x.type) + '</dd></div></dl>' +
+             '<div><dt>Intervenant</dt><dd>' + esc(x.intervenant_prenom + ' ' + x.intervenant_nom) + '</dd></div><div><dt>Type</dt><dd>' + esc(lib(x.type)) + '</dd></div></dl>' +
              '<a class="btn small" href="' + FRONT + 'interventions/fiche.html?id=' + x.id + '">' + (etat === 'sans' ? 'Ouvrir' : 'Lire et valider') + '</a></article>';
       }
       z.innerHTML = railHtml(h); railInit(z);

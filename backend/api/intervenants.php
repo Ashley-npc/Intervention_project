@@ -19,7 +19,7 @@ $REGLES = [
     'telephone'                   => ['libelle' => 'Le téléphone',            'type' => 'telephone'],
     'courriel'                    => ['libelle' => 'Le courriel',             'type' => 'courriel', 'max' => 150],
     'statut'                      => ['libelle' => 'Le statut',               'type' => 'choix', 'requis' => true,
-                                      'options' => ['salarié', 'bénévole', 'prestataire']],
+                                      'options' => ['salarie', 'benevole', 'prestataire']],
     'types_beneficiaires_preferes' => ['libelle' => 'Les bénéficiaires préférés', 'max' => 255],
     'horaires_preferes'           => ['libelle' => 'Les horaires préférés',   'max' => 255],
     'inactif'                     => ['libelle' => "L'état",                  'type' => 'booleen', 'defaut' => 0],

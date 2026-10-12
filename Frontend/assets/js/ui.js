@@ -28,23 +28,22 @@ var MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'a
 function jourLong(iso) { var d = dateDe(iso); return JOURS[d.getDay()] + ' ' + d.getDate() + ' ' + MOIS[d.getMonth()]; }
 function dateLongue(iso) { var d = dateDe(iso); return JOURS[d.getDay()] + ' ' + d.getDate() + ' ' + MOIS[d.getMonth()] + ' ' + d.getFullYear(); }
 
+// ---------- Libellés : la base stocke des valeurs SANS accents, l'écran affiche les libellés avec accents ----------
+var LIBELLES = { planifiee: 'Planifiée', realisee: 'Réalisée', annulee: 'Annulée', exterieur: 'Extérieur', domicile: 'Au domicile',
+  salarie: 'Salarié', benevole: 'Bénévole', prestataire: 'Prestataire', 'aide a la personne': 'Aide à la personne', soins: 'Soins',
+  accompagnement: 'Accompagnement', 'lien social': 'Lien social', bon: 'Bon', moyen: 'Moyen', preoccupant: 'Préoccupant',
+  emise: 'Émise', payee: 'Payée', impayee: 'Impayée', relancee: 'Relancée', espece: 'Espèces', banque: 'Banque', operateur: 'Opérateur mobile' };
+function lib(v) { return LIBELLES.hasOwnProperty(v) ? LIBELLES[v] : (v === null || v === undefined ? '' : v); }
+
 // ---------- Affichage commun ----------
 function badgeStatut(i) {
   var s = i.statut, cls = /^r/.test(s) ? 'ok' : /^a/.test(s) ? 'grey' : '';
-  var txt = s.charAt(0).toUpperCase() + s.slice(1);
+  var txt = lib(s);
   return '<span class="badge ' + cls + '">' + esc(txt) + '</span>' + (i.urgente ? ' <span class="badge danger">Urgent</span>' : '') + (i.validee ? ' <span class="badge ok">Validée</span>' : '');
 }
-// Liste défilante de cartes : voir .rail dans app.css (1 carte sur mobile … 4 sur grand écran).
-function railHtml(cartes) {
-  return '<div class="rail-nav"><button type="button" class="btn small" data-rail="-1" aria-label="Précédents">‹</button>' +
-         '<span class="muted">Faites défiler pour voir la suite</span><button type="button" class="btn small" data-rail="1" aria-label="Suivants">›</button></div>' +
-         '<div class="rail">' + cartes + '</div>';
-}
-function railInit(racine) {
-  var rail = racine.querySelector('.rail'); if (!rail) return;
-  var bs = racine.querySelectorAll('[data-rail]');
-  for (var i = 0; i < bs.length; i++) bs[i].addEventListener('click', function () { rail.scrollLeft += rail.clientWidth * Number(this.getAttribute('data-rail')); });
-}
+// Liste de cartes en grille (1 à 4 colonnes selon l'écran), avec défilement vers le bas : voir .rail dans app.css.
+function railHtml(cartes) { return '<div class="rail">' + cartes + '</div>'; }
+function railInit() {}   // plus rien à brancher (conservé pour compatibilité)
 // Affiche les erreurs de champs renvoyées par l'API (422/409) sous chaque champ #e_<nom>.
 function montrerErreurs(r, msgId) {
   var m = document.getElementById(msgId || 'msg'); m.textContent = r.data.message || 'Erreur.'; m.hidden = false;
@@ -57,3 +56,12 @@ function effacerErreurs(msgId) {
   var f = document.querySelectorAll('.invalide'); for (i = 0; i < f.length; i++) f[i].className = f[i].className.replace(' invalide', '');
   document.getElementById(msgId || 'msg').hidden = true;
 }
+
+// Montants en Ariary : 1 250 000 Ar (les centimes ne s'affichent que s'il y en a).
+function argent(n) {
+  n = Number(n) || 0;
+  var t = (Math.round(n * 100) / 100).toFixed(Math.round(n * 100) % 100 === 0 ? 0 : 2).replace('.', ',');
+  var p = t.split(','); p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
+  return p.join(',') + '\u00a0Ar';
+}
+function badgeFacture(s) { return '<span class="badge ' + (s === 'payee' ? 'ok' : s === 'impayee' ? 'danger' : s === 'relancee' ? 'warn' : '') + '">' + esc(lib(s)) + '</span>'; }

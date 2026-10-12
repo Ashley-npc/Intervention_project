@@ -27,7 +27,7 @@ function interventions_de(string $colonne, int $id): array {
     $st->execute([$id, date('Y-m-d')]);
     $a_venir = 0;
     foreach ($st->fetchAll() as $r) {
-        if (!in_array($r['statut'], ['annulée', 'annulee'], true)) $a_venir++;
+        if (!in_array($r['statut'], ['annulee'], true)) $a_venir++;
     }
     return [$lignes, $a_venir];
 }

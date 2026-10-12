@@ -20,7 +20,7 @@ $REGLES = [
     'duree_reelle'      => ['libelle' => 'La durée réelle',        'type' => 'texte', 'max' => 4],
     'actes_realises'    => ['libelle' => 'Les actes réalisés',     'max' => 4000, 'requis' => true],
     'observations'      => ['libelle' => 'Les observations',       'max' => 4000],
-    'etat_beneficiaire' => ['libelle' => "L'état du bénéficiaire", 'type' => 'choix', 'options' => ['bon', 'moyen', 'préoccupant']],
+    'etat_beneficiaire' => ['libelle' => "L'état du bénéficiaire", 'type' => 'choix', 'options' => ['bon', 'moyen', 'preoccupant']],
 ];
 
 function intervention_simple(int $id): ?array {
@@ -43,7 +43,7 @@ if ($methode === 'GET') {
     $etat = $_GET['etat'] ?? 'a_valider';
     if ($etat === 'sans') {
         // Interventions passées, non annulées, sans aucun compte rendu.
-        $st = db()->prepare(SELECT_INTERVENTION . " WHERE c.id_compte_rendu IS NULL AND i.statut NOT IN ('annulée','annulee') AND " . SQL_TERMINEE . " ORDER BY i.date DESC, i.heure_debut DESC LIMIT 200");
+        $st = db()->prepare(SELECT_INTERVENTION . " WHERE c.id_compte_rendu IS NULL AND i.statut NOT IN ('annulee') AND " . SQL_TERMINEE . " ORDER BY i.date DESC, i.heure_debut DESC LIMIT 200");
         $st->execute(params_terminee());
     } else {
         $filtre = $etat === 'tous' ? '' : ' AND c.valide_par_coordinateur = 0';
@@ -71,7 +71,7 @@ if ($methode === 'POST') {                                       // ----- saisie
     $pdo->beginTransaction();
     try {
         $pdo->prepare('INSERT INTO compte_rendu (' . implode(', ', $cols) . ') VALUES (' . implode(', ', array_fill(0, count($cols), '?')) . ')')->execute(array_values($v));
-        $pdo->prepare("UPDATE intervention SET statut = 'réalisée', date_modification = ? WHERE id_intervention = ?")->execute([date('Y-m-d'), $id]);
+        $pdo->prepare("UPDATE intervention SET statut = 'realisee', date_modification = ? WHERE id_intervention = ?")->execute([date('Y-m-d'), $id]);
         $pdo->commit();
     } catch (PDOException $e) {
         $pdo->rollBack();
@@ -97,7 +97,7 @@ if ($methode === 'PUT') {
         $pdo = db();
         $pdo->beginTransaction();
         $pdo->prepare('UPDATE compte_rendu SET valide_par_coordinateur = 1 WHERE id_intervention = ?')->execute([$id]);
-        $pdo->prepare("UPDATE intervention SET validee = 1, statut = 'réalisée', date_modification = ? WHERE id_intervention = ?")->execute([date('Y-m-d'), $id]);
+        $pdo->prepare("UPDATE intervention SET validee = 1, statut = 'realisee', date_modification = ? WHERE id_intervention = ?")->execute([date('Y-m-d'), $id]);
         $pdo->commit();
         json_out(200, ['ok' => true, 'id' => $id]);
     }

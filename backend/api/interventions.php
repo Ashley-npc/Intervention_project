@@ -23,10 +23,10 @@ $REGLES = [
     'heure_debut'       => ['libelle' => "L'heure de début", 'type' => 'heure', 'requis' => true],
     'heure_fin'         => ['libelle' => "L'heure de fin",   'type' => 'heure', 'requis' => true],
     'type'              => ['libelle' => 'Le type',          'type' => 'choix', 'requis' => true, 'options' => TYPES_INTERVENTION],
-    'lieu'              => ['libelle' => 'Le lieu',          'type' => 'choix', 'options' => ['domicile', 'extérieur'], 'defaut' => 'domicile'],
+    'lieu'              => ['libelle' => 'Le lieu',          'type' => 'choix', 'options' => ['domicile', 'exterieur'], 'defaut' => 'domicile'],
     'adresse_exterieur' => ['libelle' => "L'adresse",        'max' => 255],
     'urgente'           => ['libelle' => "L'urgence",        'type' => 'booleen', 'defaut' => 0],
-    'statut'            => ['libelle' => 'Le statut',        'type' => 'choix', 'options' => STATUTS_INTERVENTION, 'defaut' => 'planifiée'],
+    'statut'            => ['libelle' => 'Le statut',        'type' => 'choix', 'options' => STATUTS_INTERVENTION, 'defaut' => 'planifiee'],
 ];
 
 function lire_intervention(int $id): ?array {
@@ -115,12 +115,12 @@ if ($methode === 'POST' || $methode === 'PUT') {
     $debut = $v['heure_debut'] ?? ($actuelle ? substr($actuelle['heure_debut'] . '', 0, 8) : null);
     $fin   = $v['heure_fin']   ?? ($actuelle ? substr($actuelle['heure_fin'] . '', 0, 8) : null);
     $lieu  = $v['lieu']        ?? ($actuelle['lieu'] ?? 'domicile');
-    $statut = $v['statut']     ?? ($actuelle['statut'] ?? 'planifiée');
+    $statut = $v['statut']     ?? ($actuelle['statut'] ?? 'planifiee');
     if ($debut && strlen($debut) === 5) $debut .= ':00';
     if ($fin && strlen($fin) === 5) $fin .= ':00';
     if (!isset($erreurs['heure_fin']) && !isset($erreurs['heure_debut']) && $debut && $fin && $fin <= $debut) $erreurs['heure_fin'] = "L'heure de fin doit être après l'heure de début.";
     $adresse_ext = array_key_exists('adresse_exterieur', $v) ? $v['adresse_exterieur'] : ($actuelle['adresse_exterieur'] ?? null);
-    if ($lieu === 'extérieur' && !$adresse_ext && !isset($erreurs['adresse_exterieur'])) $erreurs['adresse_exterieur'] = "L'adresse est obligatoire pour un lieu extérieur.";
+    if ($lieu === 'exterieur' && !$adresse_ext && !isset($erreurs['adresse_exterieur'])) $erreurs['adresse_exterieur'] = "L'adresse est obligatoire pour un lieu extérieur.";
     if ($lieu === 'domicile') $v['adresse_exterieur'] = null;
     if ($creation && $date && $date < date('Y-m-d') && !isset($erreurs['date'])) $erreurs['date'] = 'On ne planifie pas dans le passé.';
 

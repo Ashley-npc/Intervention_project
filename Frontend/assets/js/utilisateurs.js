@@ -11,7 +11,7 @@ Shell.demarrer(function (contenu, moi) {
       '<section class="card"><header><h2>Créer un compte</h2></header><p class="msg-err" id="msg" hidden></p><form id="f" novalidate><div class="form-grid">' +
       '<div class="field"><label for="c_identifiant">Identifiant *</label><input id="c_identifiant" name="identifiant" type="text" autocomplete="off" autocapitalize="none"><span class="field-err" id="e_identifiant"></span></div>' +
       '<div class="field"><label for="c_role">Rôle *</label><select id="c_role" name="role"></select><span class="field-err" id="e_role"></span></div>' +
-      '<div class="field large" id="bloc-interv"><label for="c_id_intervenant">Fiche intervenant *</label><select id="c_id_intervenant" name="id_intervenant"></select><span class="field-err" id="e_id_intervenant"></span></div>' +
+      '<div class="field large" id="bloc-lie"><label for="c_lie" id="lib-lie">Fiche liée *</label><select id="c_lie"></select><span class="field-err" id="e_lie"></span></div>' +
       '</div><div class="actions"><button class="btn" type="submit" id="ok">Créer le compte</button></div></form></section>' +
       '<section class="card"><header><h2>Comptes</h2></header><div class="table-wrap stack" id="liste"></div></section>';
     charger();
@@ -24,9 +24,6 @@ Shell.demarrer(function (contenu, moi) {
       var roles = '', i;
       for (i = 0; i < donnees.roles.length; i++) roles += '<option value="' + esc(donnees.roles[i]) + '">' + esc(donnees.roles[i]) + '</option>';
       document.getElementById('c_role').innerHTML = roles;
-      var lib = '<option value="">— choisir —</option>';
-      for (i = 0; i < donnees.intervenants_libres.length; i++) lib += '<option value="' + donnees.intervenants_libres[i].id + '">' + esc(donnees.intervenants_libres[i].prenom + ' ' + donnees.intervenants_libres[i].nom) + '</option>';
-      document.getElementById('c_id_intervenant').innerHTML = lib;
       majRole();
       var h = '<table><thead><tr><th>Identifiant</th><th>Rôle</th><th>Fiche liée</th><th>Dernière connexion</th><th></th></tr></thead><tbody>';
       for (i = 0; i < donnees.items.length; i++) {
@@ -39,17 +36,30 @@ Shell.demarrer(function (contenu, moi) {
       document.getElementById('liste').innerHTML = h + '</tbody></table>';
     });
   }
-  function majRole() { document.getElementById('bloc-interv').hidden = document.getElementById('c_role').value !== 'intervenant'; }
+  // Rôles qui doivent être reliés à une fiche : intervenant, proche_aidant, beneficiaire.
+  var LIENS = { intervenant: ['id_intervenant', 'intervenants_libres', 'Fiche intervenant *'], proche_aidant: ['id_aidant', 'aidants_libres', 'Fiche proche aidant *'], beneficiaire: ['id_beneficiaire', 'beneficiaires_libres', 'Fiche bénéficiaire *'] };
+  function majRole() {
+    var l = LIENS[document.getElementById('c_role').value], bloc = document.getElementById('bloc-lie');
+    bloc.hidden = !l; if (!l) return;
+    document.getElementById('lib-lie').textContent = l[2];
+    var o = '<option value="">— choisir —</option>', liste = donnees[l[1]] || [];
+    for (var i = 0; i < liste.length; i++) o += '<option value="' + liste[i].id + '">' + esc(liste[i].prenom + ' ' + liste[i].nom) + '</option>';
+    document.getElementById('c_lie').innerHTML = o;
+  }
 
   contenu.addEventListener('change', function (e) { if (e.target.id === 'c_role') majRole(); });
   contenu.addEventListener('submit', function (e) {
     e.preventDefault(); effacerErreurs();
     var corps = { identifiant: document.getElementById('c_identifiant').value, role: document.getElementById('c_role').value };
-    if (corps.role === 'intervenant') corps.id_intervenant = Number(document.getElementById('c_id_intervenant').value) || 0;
+    var lien = LIENS[corps.role]; if (lien) corps[lien[0]] = Number(document.getElementById('c_lie').value) || 0;
     var b = document.getElementById('ok'); b.disabled = true;
     appel('utilisateurs.php', { method: 'POST', body: JSON.stringify(corps) }).then(function (r) {
       b.disabled = false;
-      if (r.ok) ouvrir(boite('Compte créé', r.data.identifiant, r.data.mot_de_passe_temporaire)); else montrerErreurs(r);
+      if (r.ok) ouvrir(boite('Compte créé', r.data.identifiant, r.data.mot_de_passe_temporaire)); else {
+        var er = r.data.erreurs || {};
+        for (var k in LIENS) if (er[LIENS[k][0]]) er.lie = er[LIENS[k][0]];   // le champ « fiche liée » est unique à l'écran
+        montrerErreurs(r);
+      }
     }, function () { b.disabled = false; });
   });
   contenu.addEventListener('click', function (e) {

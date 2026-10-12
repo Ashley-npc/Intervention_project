@@ -5,13 +5,14 @@ require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/interventions.php';
 
 exiger_methode('GET');
-$user = exiger_connexion(['administrateur', 'coordinateur', 'intervenant', 'responsable_qualite', 'direction']);
+$user = exiger_connexion(['administrateur', 'coordinateur', 'intervenant', 'responsable_qualite', 'direction', 'facturation']);
 $aujourdhui = date('Y-m-d');
 $lundi = date('Y-m-d', strtotime('monday this week'));
 $dimanche = date('Y-m-d', strtotime('sunday this week'));
-$pas_annulee = "statut NOT IN ('annulée','annulee')";
+$pas_annulee = "statut NOT IN ('annulee')";
 
 function minutes(string $debut, string $fin): int { return (int)((strtotime("1970-01-01 $fin") - strtotime("1970-01-01 $debut")) / 60); }
+function nb(string $sql, array $p = []): float { $st = db()->prepare($sql); $st->execute($p); return (float)$st->fetchColumn(); }
 function un(string $sql, array $p = []): int { $st = db()->prepare($sql); $st->execute($p); return (int)$st->fetchColumn(); }
 
 if ($user['role'] === 'intervenant') {
@@ -29,6 +30,21 @@ if ($user['role'] === 'intervenant') {
             'a_saisir'   => un("SELECT COUNT(*) FROM intervention i LEFT JOIN compte_rendu c ON c.id_intervention = i.id_intervention
                                 WHERE i.id_intervenant = ? AND " . SQL_TERMINEE . " AND i.$pas_annulee AND c.id_compte_rendu IS NULL", array_merge([$mon_id], params_terminee())),
         ]]);
+}
+
+if ($user['role'] === 'facturation') {
+    $mois = date('Y-m');
+    $reste = db()->query("SELECT COALESCE(SUM(f.montant_total), 0) - COALESCE(SUM((SELECT COALESCE(SUM(p.montant), 0) FROM paiement p WHERE p.id_facture = f.id_facture)), 0)
+                          FROM facture f WHERE f.statut <> 'payee'")->fetchColumn();
+    $st = db()->query("SELECT f.id_facture AS id, f.numero, f.date_emission, f.montant_total, f.statut, b.nom, b.prenom FROM facture f JOIN beneficiaire b ON b.id_beneficiaire = f.id_beneficiaire
+                       ORDER BY f.date_emission DESC, f.id_facture DESC LIMIT 5");
+    json_out(200, ['ok' => true, 'role' => 'facturation', 'kpis' => [
+        'facture_mois' => round(nb('SELECT COALESCE(SUM(montant_total), 0) FROM facture WHERE date_emission LIKE ?', ["$mois%"]), 2),
+        'encaisse_mois' => round(nb('SELECT COALESCE(SUM(montant), 0) FROM paiement WHERE date_paiement LIKE ?', ["$mois%"]), 2),
+        'reste_a_payer' => round((float)$reste, 2),
+        'a_facturer' => un("SELECT COUNT(*) FROM intervention WHERE validee = 1 AND statut = 'realisee' AND id_facture IS NULL"),
+        'en_retard' => un("SELECT COUNT(*) FROM facture WHERE statut <> 'payee' AND date_emission < ?", [date('Y-m-d', strtotime('-30 days'))]),
+    ], 'dernieres' => $st->fetchAll()]);
 }
 
 // Coordinateur, administrateur, qualité, direction : vue d'ensemble.
@@ -50,7 +66,7 @@ usort($charge, function ($a, $b) { return $b['minutes'] <=> $a['minutes']; });
 $conflits = un("SELECT COUNT(*) FROM intervention a JOIN intervention b ON a.id_intervention < b.id_intervention AND a.date = b.date
                 AND a.heure_debut < b.heure_fin AND a.heure_fin > b.heure_debut
                 AND (a.id_intervenant = b.id_intervenant OR a.id_beneficiaire = b.id_beneficiaire)
-                WHERE a.statut NOT IN ('annulée','annulee') AND b.statut NOT IN ('annulée','annulee') AND a.date >= ?", [$aujourdhui]);
+                WHERE a.statut NOT IN ('annulee') AND b.statut NOT IN ('annulee') AND a.date >= ?", [$aujourdhui]);
 
 $kpis = [
     'semaine'       => un("SELECT COUNT(*) FROM intervention WHERE date BETWEEN ? AND ? AND $pas_annulee", [$lundi, $dimanche]),

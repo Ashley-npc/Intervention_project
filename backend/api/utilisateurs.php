@@ -15,21 +15,26 @@ $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($methode === 'GET') {
     $comptes = db()->query(
         'SELECT u.id_utilisateur AS id, u.identifiant, u.actif, u.derniere_connexion, u.doit_changer_mot_de_passe, r.libelle AS role,
-                v.prenom AS i_prenom, v.nom AS i_nom
+                v.prenom AS i_prenom, v.nom AS i_nom, pa.prenom AS a_prenom, pa.nom AS a_nom, bb.prenom AS b_prenom, bb.nom AS b_nom
          FROM utilisateur u JOIN role r ON r.id_role = u.id_role
          LEFT JOIN intervenant v ON v.id_utilisateur = u.id_utilisateur
+         LEFT JOIN proche_aidant pa ON pa.id_utilisateur = u.id_utilisateur
+         LEFT JOIN beneficiaire bb ON bb.id_utilisateur = u.id_utilisateur
          ORDER BY u.identifiant'
     )->fetchAll();
     foreach ($comptes as &$c) {
         $c['id'] = (int)$c['id']; $c['actif'] = (bool)$c['actif']; $c['inactif'] = !$c['actif'];
         $c['mdp_temporaire'] = (bool)$c['doit_changer_mot_de_passe'];
-        $c['intervenant'] = $c['i_nom'] ? $c['i_prenom'] . ' ' . $c['i_nom'] : null;
-        unset($c['doit_changer_mot_de_passe'], $c['i_prenom'], $c['i_nom']);
+        $c['intervenant'] = $c['i_nom'] ? $c['i_prenom'] . ' ' . $c['i_nom']
+                          : ($c['a_nom'] ? $c['a_prenom'] . ' ' . $c['a_nom'] : ($c['b_nom'] ? $c['b_prenom'] . ' ' . $c['b_nom'] : null));   // fiche liée, quel que soit le rôle
+        unset($c['doit_changer_mot_de_passe'], $c['i_prenom'], $c['i_nom'], $c['a_prenom'], $c['a_nom'], $c['b_prenom'], $c['b_nom']);
     }
     unset($c);
     $roles = array_column(db()->query('SELECT libelle FROM role ORDER BY id_role')->fetchAll(), 'libelle');
     $libres = db()->query('SELECT id_intervenant AS id, nom, prenom FROM intervenant WHERE id_utilisateur IS NULL AND actif = 1 ORDER BY nom, prenom')->fetchAll();
-    json_out(200, ['ok' => true, 'items' => $comptes, 'roles' => $roles, 'intervenants_libres' => $libres]);
+    $aidants = db()->query('SELECT id_aidant AS id, nom, prenom FROM proche_aidant WHERE id_utilisateur IS NULL AND actif = 1 ORDER BY nom, prenom')->fetchAll();
+    $benefs = db()->query('SELECT id_beneficiaire AS id, nom, prenom FROM beneficiaire WHERE id_utilisateur IS NULL AND archive = 0 ORDER BY nom, prenom')->fetchAll();
+    json_out(200, ['ok' => true, 'items' => $comptes, 'roles' => $roles, 'intervenants_libres' => $libres, 'aidants_libres' => $aidants, 'beneficiaires_libres' => $benefs]);
 }
 
 if ($methode === 'POST') {
@@ -42,17 +47,23 @@ if ($methode === 'POST') {
     $st->execute([$role]);
     $id_role = $st->fetchColumn();
     if ($id_role === false) $erreurs['role'] = 'Rôle inconnu.';
-    $id_interv = (int)($d['id_intervenant'] ?? 0);
-    if ($id_interv > 0) {
-        if ($role !== 'intervenant') $erreurs['id_intervenant'] = "Seul un compte « intervenant » peut être lié à une fiche intervenant.";
+    // Certains rôles doivent être liés à une fiche : intervenant -> intervenant, proche_aidant -> proche_aidant, beneficiaire -> beneficiaire.
+    $LIENS = ['intervenant' => ['id_intervenant', 'intervenant', 'id_intervenant', 'actif = 1', 'Cet intervenant', 'cet intervenant'],
+              'proche_aidant' => ['id_aidant', 'proche_aidant', 'id_aidant', 'actif = 1', 'Ce proche aidant', 'ce proche aidant'],
+              'beneficiaire' => ['id_beneficiaire', 'beneficiaire', 'id_beneficiaire', 'archive = 0', 'Ce bénéficiaire', 'ce bénéficiaire']];
+    $lien = $LIENS[$role] ?? null;      // [champ envoyé, table, colonne id, condition active, libellés…]
+    $id_lie = $lien ? (int)($d[$lien[0]] ?? 0) : 0;
+    foreach ($LIENS as $r => $l) if ($r !== $role && (int)($d[$l[0]] ?? 0) > 0) $erreurs[$l[0]] = "Ce champ ne concerne pas le rôle « $role ».";
+    if ($lien) {
+        if ($id_lie <= 0) $erreurs[$lien[0]] = "Choisissez la fiche de cette personne.";
         else {
-            $st = db()->prepare('SELECT id_utilisateur FROM intervenant WHERE id_intervenant = ? AND actif = 1');
-            $st->execute([$id_interv]);
+            $st = db()->prepare("SELECT id_utilisateur FROM {$lien[1]} WHERE {$lien[2]} = ? AND {$lien[3]}");
+            $st->execute([$id_lie]);
             $ligne = $st->fetch();
-            if (!$ligne) $erreurs['id_intervenant'] = 'Intervenant introuvable.';
-            elseif ($ligne['id_utilisateur'] !== null) $erreurs['id_intervenant'] = 'Cet intervenant a déjà un compte.';
+            if (!$ligne) $erreurs[$lien[0]] = 'Fiche introuvable.';
+            elseif ($ligne['id_utilisateur'] !== null) $erreurs[$lien[0]] = $lien[4] . ' a déjà un compte.';
         }
-    } elseif ($role === 'intervenant') $erreurs['id_intervenant'] = 'Choisissez la fiche intervenant de cette personne.';
+    }
     if ($erreurs) json_out(422, ['ok' => false, 'message' => 'Certains champs sont à corriger.', 'erreurs' => $erreurs]);
 
     $mdp = mot_de_passe_temporaire();
@@ -62,7 +73,7 @@ if ($methode === 'POST') {
         $pdo->prepare('INSERT INTO utilisateur (identifiant, mot_de_passe, actif, doit_changer_mot_de_passe, id_role) VALUES (?, ?, 1, 1, ?)')
             ->execute([$identifiant, password_hash($mdp, PASSWORD_DEFAULT), $id_role]);
         $nouvel_id = (int)$pdo->lastInsertId();
-        if ($id_interv > 0) $pdo->prepare('UPDATE intervenant SET id_utilisateur = ? WHERE id_intervenant = ?')->execute([$nouvel_id, $id_interv]);
+        if ($lien) $pdo->prepare("UPDATE {$lien[1]} SET id_utilisateur = ? WHERE {$lien[2]} = ?")->execute([$nouvel_id, $id_lie]);
         $pdo->commit();
     } catch (PDOException $e) {
         $pdo->rollBack();

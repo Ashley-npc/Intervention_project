@@ -2,7 +2,7 @@
 Shell.demarrer(function (contenu) {
   var id = param('id');
   document.title = (id ? 'Modifier' : 'Nouvelle') + ' intervention · Suivi à domicile';
-  var TYPES = ['aide à la personne', 'soins', 'accompagnement', 'lien social'];
+  var TYPES = ['aide a la personne', 'soins', 'accompagnement', 'lien social'];
 
   function options(liste, choisi, vide) {
     var h = vide ? '<option value="">' + vide + '</option>' : '';
@@ -19,18 +19,18 @@ Shell.demarrer(function (contenu) {
       '<div class="field"><label for="c_id_beneficiaire">Bénéficiaire *</label><select id="c_id_beneficiaire" name="id_beneficiaire">' + options(personnes(benefs), x.id_beneficiaire, '— choisir —') + '</select><span class="field-err" id="e_id_beneficiaire"></span></div>' +
       '<div class="field"><label for="c_id_intervenant">Intervenant *</label><select id="c_id_intervenant" name="id_intervenant">' + options(personnes(intervs), x.id_intervenant, '— choisir —') + '</select><span class="field-err" id="e_id_intervenant"></span></div>' +
       '<div class="field"><label for="c_date">Date *</label><input id="c_date" name="date" type="date" value="' + esc(x.date || '') + '"><span class="field-err" id="e_date"></span></div>' +
-      '<div class="field"><label for="c_type">Type *</label><select id="c_type" name="type">' + options(TYPES.map(function (t) { return [t, t.charAt(0).toUpperCase() + t.slice(1)]; }), x.type, '— choisir —') + '</select><span class="field-err" id="e_type"></span></div>' +
+      '<div class="field"><label for="c_type">Type *</label><select id="c_type" name="type">' + options(TYPES.map(function (t) { return [t, lib(t)]; }), x.type, '— choisir —') + '</select><span class="field-err" id="e_type"></span></div>' +
       '<div class="field"><label for="c_heure_debut">Début *</label><input id="c_heure_debut" name="heure_debut" type="time" value="' + esc(x.heure_debut || '') + '"><span class="field-err" id="e_heure_debut"></span></div>' +
       '<div class="field"><label for="c_heure_fin">Fin *</label><input id="c_heure_fin" name="heure_fin" type="time" value="' + esc(x.heure_fin || '') + '"><span class="field-err" id="e_heure_fin"></span></div>' +
       '</div></section><section class="card"><header><h2>Lieu et suivi</h2></header><div class="form-grid">' +
-      '<div class="field"><label for="c_lieu">Lieu</label><select id="c_lieu" name="lieu">' + options([['domicile', 'Au domicile'], ['extérieur', 'À l\'extérieur']], x.lieu || 'domicile') + '</select></div>' +
+      '<div class="field"><label for="c_lieu">Lieu</label><select id="c_lieu" name="lieu">' + options([['domicile', 'Au domicile'], ['exterieur', 'À l\'exterieur']], x.lieu || 'domicile') + '</select></div>' +
       '<div class="field" id="bloc-adresse"><label for="c_adresse_exterieur">Adresse (si extérieur) *</label><input id="c_adresse_exterieur" name="adresse_exterieur" type="text" value="' + esc(x.adresse_exterieur || '') + '"><span class="field-err" id="e_adresse_exterieur"></span></div>' +
-      (id ? '<div class="field"><label for="c_statut">Statut</label><select id="c_statut" name="statut">' + options([['planifiée', 'Planifiée'], ['réalisée', 'Réalisée'], ['annulée', 'Annulée']], x.statut) + '</select></div>' : '') +
+      (id ? '<div class="field"><label for="c_statut">Statut</label><select id="c_statut" name="statut">' + options([['planifiee', 'Planifiée'], ['realisee', 'Réalisée'], ['annulee', 'Annulée']], x.statut) + '</select></div>' : '') +
       '<label class="chk field large"><input type="checkbox" id="c_urgente"' + (x.urgente ? ' checked' : '') + '> Intervention urgente</label>' +
       '</div></section><div class="actions"><button class="btn" type="submit" id="ok"' + (verrou ? ' disabled' : '') + '>Enregistrer</button></div></form>';
     contenu.innerHTML = h;
     var lieu = document.getElementById('c_lieu'), bloc = document.getElementById('bloc-adresse');
-    function majLieu() { bloc.hidden = lieu.value !== 'extérieur'; }
+    function majLieu() { bloc.hidden = lieu.value !== 'exterieur'; }
     lieu.addEventListener('change', majLieu); majLieu();
     document.getElementById('f').addEventListener('submit', function (e) {
       e.preventDefault(); effacerErreurs();

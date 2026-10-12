@@ -1,10 +1,10 @@
 <?php
 // Règles métier des interventions, partagées par plusieurs pages d'API.
 
-const TYPES_INTERVENTION = ['aide à la personne', 'soins', 'accompagnement', 'lien social'];
-const STATUTS_INTERVENTION = ['planifiée', 'réalisée', 'annulée'];
+const TYPES_INTERVENTION = ['aide a la personne', 'soins', 'accompagnement', 'lien social'];
+const STATUTS_INTERVENTION = ['planifiee', 'realisee', 'annulee'];
 
-function est_annulee(string $statut): bool { return in_array($statut, ['annulée', 'annulee'], true); }
+function est_annulee(string $statut): bool { return in_array($statut, ['annulee'], true); }
 
 // Identifiant de la fiche intervenant liée au compte connecté (ou null).
 function intervenant_du_compte(array $user): ?int {
@@ -25,7 +25,7 @@ function chevauchements(string $date, string $debut, string $fin, int $id_benef,
          JOIN beneficiaire b ON b.id_beneficiaire = i.id_beneficiaire
          JOIN intervenant  v ON v.id_intervenant  = i.id_intervenant
          WHERE i.date = ? AND i.heure_debut < ? AND i.heure_fin > ?
-           AND i.statut NOT IN ('annulée', 'annulee')
+           AND i.statut NOT IN ('annulee')
            AND (i.id_intervenant = ? OR i.id_beneficiaire = ?)
            AND i.id_intervention <> ?"
     );

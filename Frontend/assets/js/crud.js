@@ -65,21 +65,25 @@
         }
         h += '</dl></section>';
       }
+      if (r.data.interventions) {
       h += '<section class="card"><header><h2>Dernières interventions</h2><span class="muted">' + r.data.a_venir + ' à venir</span></header>';
-      var it = r.data.interventions;
-      if (!it.length) h += '<p class="empty">Aucune intervention.</p>';
-      else {
-        h += '<div class="table-wrap stack"><table><thead><tr><th>Date</th><th>Horaire</th><th>Type</th><th>' + (R.autrePersonne === 'intervenant' ? 'Intervenant' : 'Bénéficiaire') +
-             '</th><th>Statut</th></tr></thead><tbody>';
-        for (var i = 0; i < it.length; i++) {
-          var a = it[i];
-          h += '<tr><td data-l="Date">' + dateFr(a.date) + '</td><td data-l="Horaire">' + heure(a.heure_debut) + '–' + heure(a.heure_fin) + '</td><td data-l="Type">' + esc(a.type) +
-               '</td><td data-l="' + (R.autrePersonne === 'intervenant' ? 'Intervenant' : 'Bénéficiaire') + '">' + esc(a[R.autrePersonne + '_prenom'] + ' ' + a[R.autrePersonne + '_nom']) +
-               '</td><td data-l="Statut"><span class="badge">' + esc(a.statut) + '</span></td></tr>';
+        var it = r.data.interventions;
+        if (!it.length) h += '<p class="empty">Aucune intervention.</p>';
+        else {
+          h += '<div class="table-wrap stack"><table><thead><tr><th>Date</th><th>Horaire</th><th>Type</th><th>' + (R.autrePersonne === 'intervenant' ? 'Intervenant' : 'Bénéficiaire') +
+               '</th><th>Statut</th></tr></thead><tbody>';
+          for (var i = 0; i < it.length; i++) {
+            var a = it[i];
+            h += '<tr><td data-l="Date">' + dateFr(a.date) + '</td><td data-l="Horaire">' + heure(a.heure_debut) + '–' + heure(a.heure_fin) + '</td><td data-l="Type">' + esc(lib(a.type)) +
+                 '</td><td data-l="' + (R.autrePersonne === 'intervenant' ? 'Intervenant' : 'Bénéficiaire') + '">' + esc(a[R.autrePersonne + '_prenom'] + ' ' + a[R.autrePersonne + '_nom']) +
+                 '</td><td data-l="Statut"><span class="badge">' + esc(lib(a.statut)) + '</span></td></tr>';
+          }
+          h += '</tbody></table></div>';
         }
-        h += '</tbody></table></div>';
+        h += '</section>';
       }
-      contenu.innerHTML = h + '</section>';
+      contenu.innerHTML = h;
+      if (R.apresFiche) R.apresFiche(x, contenu, r.data);
       document.getElementById('etat').addEventListener('click', function () {
         var vers = !x.inactif, msg;
         if (vers) {

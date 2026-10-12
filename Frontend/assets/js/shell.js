@@ -7,11 +7,14 @@ var Shell = (function () {
     if (role === 'coordinateur' || role === 'administrateur') {
       l.push(['Planning', 'interventions/planning.html', 'planning'], ['Bénéficiaires', 'beneficiaires/liste.html', 'beneficiaires'],
              ['Intervenants', 'intervenants/liste.html', 'intervenants'], ['Comptes rendus', 'interventions/comptes-rendus.html', 'comptes-rendus']);
-      if (role === 'administrateur') l.push(['Utilisateurs', 'admin/utilisateurs.html', 'utilisateurs']);
+      l.push(['Proches aidants', 'aidants/liste.html', 'aidants']);
+      if (role === 'administrateur') l.push(['Facturation', 'facturation/factures.html', 'factures'], ['Utilisateurs', 'admin/utilisateurs.html', 'utilisateurs']);
+    } else if (role === 'facturation') {
+      l.push(['Factures', 'facturation/factures.html', 'factures'], ['Nouvelle facture', 'facturation/nouvelle.html', 'nouvelle'], ['Tarifs', 'facturation/tarifs.html', 'tarifs']);
     } else if (role === 'intervenant') l.push(['Mon planning', 'espace-intervenant/planning.html', 'planning']);
     return l;
   }
-  var NOMS = { administrateur: 'Administration', coordinateur: 'Coordination', intervenant: 'Intervenant', responsable_qualite: 'Qualité', direction: 'Direction' };
+  var NOMS = { administrateur: 'Administration', coordinateur: 'Coordination', intervenant: 'Intervenant', responsable_qualite: 'Qualité', direction: 'Direction', facturation: 'Facturation', maintenance: 'Maintenance', proche_aidant: 'Proche aidant', beneficiaire: 'Mes visites' };
 
   function coque(user) {
     var courant = document.body.getAttribute('data-menu') || document.body.getAttribute('data-ressource') || '', l = liens(user.role), nav = '';
