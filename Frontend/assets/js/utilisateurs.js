@@ -8,7 +8,7 @@ Shell.demarrer(function (contenu, moi) {
   }
   function ouvrir(info) {
     contenu.innerHTML = '<div class="page-head"><div><h1>Utilisateurs</h1><p id="compte"></p></div></div><div id="info">' + (info || '') + '</div>' +
-      '<section class="card"><header><h2>Créer un compte</h2></header><p class="msg-err" id="msg" hidden></p><form id="f" novalidate><div class="form-grid">' +
+      '<section class="card"><header><h2>Créer un compte</h2></header><p class="msg-err" id="msg" hidden></p><form id="f" class="utilisateurs-form" novalidate><div class="form-grid">' +
       '<div class="field"><label for="c_identifiant">Identifiant *</label><input id="c_identifiant" name="identifiant" type="text" autocomplete="off" autocapitalize="none"><span class="field-err" id="e_identifiant"></span></div>' +
       '<div class="field"><label for="c_role">Rôle *</label><select id="c_role" name="role"></select><span class="field-err" id="e_role"></span></div>' +
       '<div class="field large" id="bloc-lie"><label for="c_lie" id="lib-lie">Fiche liée *</label><select id="c_lie"></select><span class="field-err" id="e_lie"></span></div>' +
