@@ -4,5 +4,5 @@
 require __DIR__ . '/../includes/auth.php';
 
 exiger_methode('GET');
-$u = exiger_connexion();
-json_out(200, ['ok' => true, 'user' => ['identifiant' => $u['identifiant'], 'role' => $u['role']]]);
+$u = exiger_connexion([], true);
+json_out(200, ['ok' => true, 'user' => ['identifiant' => $u['identifiant'], 'role' => $u['role'], 'doit_changer' => !empty($u['doit_changer'])]]);

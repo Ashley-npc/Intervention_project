@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mot de passe · Suivi à domicile</title>
+  <link rel="stylesheet" href="../assets/css/login.css">
+<style>html.verif body{visibility:hidden}</style><script>document.documentElement.classList.add("verif")</script><script src="../assets/js/api.js" defer></script><script src="../assets/js/guard.js" defer></script><script src="../assets/js/mot-de-passe.js" defer></script></head>
+<body>
+  <main class="page">
+    <div class="login">
+      <div class="brand">Suivi à domicile<small>Changer mon mot de passe</small></div>
+      <form class="card" id="form" novalidate>
+        <h1>Nouveau mot de passe</h1>
+        <p class="hint" id="info" hidden>Votre mot de passe est temporaire : choisissez-en un nouveau pour continuer.</p>
+        <p class="erreur" id="erreur" role="alert" hidden></p>
+        <div class="field"><label for="ancien">Mot de passe actuel</label><input type="password" id="ancien" autocomplete="current-password" required></div>
+        <div class="field"><label for="nouveau">Nouveau mot de passe</label><input type="password" id="nouveau" autocomplete="new-password" required><p class="hint">8 caractères minimum, avec au moins une lettre et un chiffre.</p></div>
+        <div class="field"><label for="confirmation">Confirmer le nouveau mot de passe</label><input type="password" id="confirmation" autocomplete="new-password" required></div>
+        <button type="submit" class="btn">Enregistrer</button>
+        <p class="hint" id="retour" hidden><a id="lien-retour" href="#">← Retour</a></p>
+      </form>
+    </div>
+  </main>
+</body>
+</html>

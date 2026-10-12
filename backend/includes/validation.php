@@ -4,7 +4,7 @@
 // valider($donnees, $regles, $complet) renvoie [valeurs_nettoyées, erreurs]
 //   $complet = true  : création (tous les champs sont attendus, les champs optionnels absents deviennent NULL)
 //   $complet = false : modification partielle (seuls les champs envoyés sont contrôlés)
-// Règle : ['libelle' => 'Le nom', 'type' => 'texte|date|courriel|telephone|choix|booleen',
+// Règle : ['libelle' => 'Le nom', 'type' => 'texte|date|heure|courriel|telephone|choix|booleen',
 //          'max' => 100, 'requis' => true, 'options' => [...], 'pas_futur' => true, 'defaut' => 0]
 function valider(array $donnees, array $regles, bool $complet): array {
     $erreurs = [];
@@ -47,6 +47,10 @@ function valider(array $donnees, array $regles, bool $complet): array {
                 $ok = $d && $d->format('Y-m-d') === $v && $v >= '1900-01-01';
                 if (!$ok) { $erreurs[$cle] = "$libelle n'est pas une date valide."; continue 2; }
                 if (!empty($r['pas_futur']) && $v > date('Y-m-d')) { $erreurs[$cle] = "$libelle ne peut pas être dans le futur."; continue 2; }
+                break;
+            case 'heure':                                   // HH:MM (ou HH:MM:SS) -> HH:MM:SS
+                if (!preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/', $v)) { $erreurs[$cle] = "$libelle n'est pas une heure valide."; continue 2; }
+                $v = substr($v . ':00', 0, 8);
                 break;
             case 'courriel':
                 if (!filter_var($v, FILTER_VALIDATE_EMAIL)) { $erreurs[$cle] = "$libelle n'est pas une adresse valide."; continue 2; }

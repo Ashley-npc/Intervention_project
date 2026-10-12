@@ -1,8 +1,3 @@
-            //TSY MISAVASAVA CODE EO EHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-
-
-
-
 <?php
 // POST /api/login.php   corps : {"identifiant": "...", "mot_de_passe": "..."}
 // Réponses : 200 {ok:true, role}   401 {ok:false, message}
@@ -20,7 +15,7 @@ if ($identifiant === '' || $mdp === '') {
 
 // Requête préparée : l'identifiant saisi ne peut pas modifier la requête SQL.
 $st = db()->prepare(
-    'SELECT u.id_utilisateur, u.identifiant, u.mot_de_passe, u.actif, r.libelle AS role
+    'SELECT u.id_utilisateur, u.identifiant, u.mot_de_passe, u.actif, u.doit_changer_mot_de_passe, r.libelle AS role
      FROM utilisateur u
      JOIN role r ON r.id_role = u.id_role
      WHERE u.identifiant = ?'
@@ -43,8 +38,9 @@ $_SESSION['user'] = [
     'id'          => (int)$u['id_utilisateur'],
     'identifiant' => $u['identifiant'],
     'role'        => $u['role'],
+    'doit_changer' => (int)$u['doit_changer_mot_de_passe'] === 1,
 ];
 db()->prepare('UPDATE utilisateur SET derniere_connexion = NOW() WHERE id_utilisateur = ?')
     ->execute([$u['id_utilisateur']]);
 
-json_out(200, ['ok' => true, 'role' => $u['role']]);
+json_out(200, ['ok' => true, 'role' => $u['role'], 'doit_changer' => $_SESSION['user']['doit_changer']]);
