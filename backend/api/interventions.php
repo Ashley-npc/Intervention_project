@@ -7,6 +7,7 @@
 // Coordinateur et administrateur : tout. Intervenant : lecture de SES interventions uniquement.
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
+require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 
@@ -139,10 +140,13 @@ if ($methode === 'POST' || $methode === 'PUT') {
         if (isset($v['heure_debut'])) $v['heure_debut'] = $debut;
         $cols = array_keys($v);
         db()->prepare('INSERT INTO intervention (' . implode(', ', $cols) . ') VALUES (' . implode(', ', array_fill(0, count($cols), '?')) . ')')->execute(array_values($v));
-        json_out(201, ['ok' => true, 'id' => (int)db()->lastInsertId()]);
+        $nouvelle = (int)db()->lastInsertId();
+        journaliser('creation', 'intervention', 'intervention ' . $nouvelle . ' le ' . $date);
+        json_out(201, ['ok' => true, 'id' => $nouvelle]);
     }
     $sets = implode(', ', array_map(function ($c) { return "$c = ?"; }, array_keys($v)));
     db()->prepare("UPDATE intervention SET $sets WHERE id_intervention = ?")->execute(array_merge(array_values($v), [$id]));
+    journaliser(est_annulee($statut) ? 'annulation' : 'modification', 'intervention', 'intervention ' . $id);
     json_out(200, ['ok' => true, 'id' => $id]);
 }
 

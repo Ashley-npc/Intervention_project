@@ -3,6 +3,7 @@
 // Réponses : 200 {ok:true, role}   401 {ok:false, message}
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
+require __DIR__ . '/../includes/journal.php';
 
 exiger_methode('POST');
 $d = corps_json();
@@ -43,4 +44,5 @@ $_SESSION['user'] = [
 db()->prepare('UPDATE utilisateur SET derniere_connexion = NOW() WHERE id_utilisateur = ?')
     ->execute([$u['id_utilisateur']]);
 
+journaliser('connexion', 'utilisateur', null);
 json_out(200, ['ok' => true, 'role' => $u['role'], 'doit_changer' => $_SESSION['user']['doit_changer']]);

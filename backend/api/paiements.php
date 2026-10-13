@@ -3,6 +3,7 @@
 // Enregistre un paiement (jamais modifié ni supprimé : on garde la trace). La facture passe à « payée » quand le reste à payer est nul.
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
+require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/facturation.php';
 
@@ -49,4 +50,5 @@ $pdo->prepare("INSERT INTO $table_fille (" . implode(', ', $cols) . ') VALUES ('
 $nouveau_restant = round($restant - $montant, 2);
 if ($nouveau_restant <= 0) $pdo->prepare("UPDATE facture SET statut = 'payee' WHERE id_facture = ?")->execute([$id_f]);
 $pdo->commit();
+journaliser('creation', 'paiement', 'facture ' . $id_f . ' : ' . $montant . ' (' . $v['mode'] . ')');
 json_out(201, ['ok' => true, 'restant' => $nouveau_restant, 'payee' => $nouveau_restant <= 0]);

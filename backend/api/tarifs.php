@@ -4,6 +4,7 @@
 // Un nouveau tarif clôture automatiquement l'ancien du même type (la veille de sa date de début).
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
+require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/facturation.php';
 
@@ -37,4 +38,5 @@ if ($ouvert) $pdo->prepare('UPDATE tarif SET date_fin_validite = ? WHERE id_tari
 $pdo->prepare('INSERT INTO tarif (type_intervention, montant_horaire, date_debut_validite, date_fin_validite) VALUES (?, ?, ?, NULL)')
     ->execute([$v['type_intervention'], $montant, $v['date_debut_validite']]);
 $pdo->commit();
+journaliser('creation', 'tarif', $v['type_intervention'] . ' : ' . $montant . ' des ' . $v['date_debut_validite']);
 json_out(201, ['ok' => true, 'id' => (int)$pdo->lastInsertId()]);

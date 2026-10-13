@@ -5,6 +5,7 @@
 //   PUT  comptes-rendus.php?id_intervention=4            modification (tant que non validé) ; {"valider": true} = validation par le coordinateur
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
+require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 
@@ -99,6 +100,7 @@ if ($methode === 'PUT') {
         $pdo->prepare('UPDATE compte_rendu SET valide_par_coordinateur = 1 WHERE id_intervention = ?')->execute([$id]);
         $pdo->prepare("UPDATE intervention SET validee = 1, statut = 'realisee', date_modification = ? WHERE id_intervention = ?")->execute([date('Y-m-d'), $id]);
         $pdo->commit();
+        journaliser('validation', 'compte_rendu', 'intervention ' . $id);
         json_out(200, ['ok' => true, 'id' => $id]);
     }
     if ((int)$cr['valide_par_coordinateur'] === 1 || (int)$i['validee'] === 1) {

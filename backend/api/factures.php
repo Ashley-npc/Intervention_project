@@ -7,6 +7,7 @@
 // Une facture ne se supprime jamais.
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
+require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/facturation.php';
 
@@ -87,6 +88,7 @@ if ($methode === 'POST') {
         if (est_doublon($e)) json_out(409, ['ok' => false, 'message' => 'Conflit de numéro de facture : réessayez.']);
         throw $e;
     }
+    journaliser('creation', 'facture', $numero . ' - total ' . $total);
     json_out(201, ['ok' => true, 'id' => $id_f, 'numero' => $numero, 'total' => $total]);
 }
 
@@ -100,6 +102,7 @@ if ($methode === 'PUT') {
     if (!in_array($nouveau, ['emise', 'impayee', 'relancee'], true)) json_out(422, ['ok' => false, 'message' => 'Statut non autorisé.', 'erreurs' => ['statut' => 'Valeurs : émise, impayée, relancée.']]);
     if ($actuel === 'payee') json_out(409, ['ok' => false, 'message' => 'Cette facture est payée : son statut ne change plus.']);
     db()->prepare('UPDATE facture SET statut = ? WHERE id_facture = ?')->execute([$nouveau, $id]);
+    journaliser('modification', 'facture', 'facture ' . $id . ' -> ' . $nouveau);
     json_out(200, ['ok' => true, 'id' => $id]);
 }
 header('Allow: GET, POST, PUT');
