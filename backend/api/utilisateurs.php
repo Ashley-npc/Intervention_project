@@ -13,28 +13,48 @@ $methode = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($methode === 'GET') {
-    $comptes = db()->query(
-        'SELECT u.id_utilisateur AS id, u.identifiant, u.actif, u.derniere_connexion, u.doit_changer_mot_de_passe, r.libelle AS role,
-                v.prenom AS i_prenom, v.nom AS i_nom, pa.prenom AS a_prenom, pa.nom AS a_nom, bb.prenom AS b_prenom, bb.nom AS b_nom
-         FROM utilisateur u JOIN role r ON r.id_role = u.id_role
-         LEFT JOIN intervenant v ON v.id_utilisateur = u.id_utilisateur
-         LEFT JOIN proche_aidant pa ON pa.id_utilisateur = u.id_utilisateur
-         LEFT JOIN beneficiaire bb ON bb.id_utilisateur = u.id_utilisateur
-         ORDER BY u.identifiant'
-    )->fetchAll();
+    $avert = [];
+    // Requete complete (fiches liees) ; si la base n'a pas encore toutes les tables/colonnes, on retombe sur la liste simple.
+    try {
+        $comptes = db()->query(
+            'SELECT u.id_utilisateur AS id, u.identifiant, u.actif, u.derniere_connexion, u.doit_changer_mot_de_passe, r.libelle AS role,
+                    v.prenom AS i_prenom, v.nom AS i_nom, pa.prenom AS a_prenom, pa.nom AS a_nom, bb.prenom AS b_prenom, bb.nom AS b_nom
+             FROM utilisateur u JOIN role r ON r.id_role = u.id_role
+             LEFT JOIN intervenant v ON v.id_utilisateur = u.id_utilisateur
+             LEFT JOIN proche_aidant pa ON pa.id_utilisateur = u.id_utilisateur
+             LEFT JOIN beneficiaire bb ON bb.id_utilisateur = u.id_utilisateur
+             ORDER BY u.identifiant'
+        )->fetchAll();
+    } catch (PDOException $e) {
+        error_log('[API] utilisateurs : requete complete impossible : ' . $e->getMessage());
+        $avert[] = 'Colonnes ou tables manquantes dans la base (voir ajout-colonnes*.sql). Les fiches liees ne sont pas affichees. Detail : ' . $e->getMessage();
+        $comptes = db()->query(
+            'SELECT u.id_utilisateur AS id, u.identifiant, u.actif, u.derniere_connexion, u.doit_changer_mot_de_passe, r.libelle AS role
+             FROM utilisateur u JOIN role r ON r.id_role = u.id_role ORDER BY u.identifiant'
+        )->fetchAll();
+    }
     foreach ($comptes as &$c) {
         $c['id'] = (int)$c['id']; $c['actif'] = (bool)$c['actif']; $c['inactif'] = !$c['actif'];
         $c['mdp_temporaire'] = (bool)$c['doit_changer_mot_de_passe'];
-        $c['intervenant'] = $c['i_nom'] ? $c['i_prenom'] . ' ' . $c['i_nom']
-                          : ($c['a_nom'] ? $c['a_prenom'] . ' ' . $c['a_nom'] : ($c['b_nom'] ? $c['b_prenom'] . ' ' . $c['b_nom'] : null));   // fiche liée, quel que soit le rôle
+        $c['intervenant'] = !empty($c['i_nom']) ? $c['i_prenom'] . ' ' . $c['i_nom']
+                          : (!empty($c['a_nom']) ? $c['a_prenom'] . ' ' . $c['a_nom'] : (!empty($c['b_nom']) ? $c['b_prenom'] . ' ' . $c['b_nom'] : null));   // fiche liee, quel que soit le role
         unset($c['doit_changer_mot_de_passe'], $c['i_prenom'], $c['i_nom'], $c['a_prenom'], $c['a_nom'], $c['b_prenom'], $c['b_nom']);
     }
     unset($c);
     $roles = array_column(db()->query('SELECT libelle FROM role ORDER BY id_role')->fetchAll(), 'libelle');
-    $libres = db()->query('SELECT id_intervenant AS id, nom, prenom FROM intervenant WHERE id_utilisateur IS NULL AND actif = 1 ORDER BY nom, prenom')->fetchAll();
-    $aidants = db()->query('SELECT id_aidant AS id, nom, prenom FROM proche_aidant WHERE id_utilisateur IS NULL AND actif = 1 ORDER BY nom, prenom')->fetchAll();
-    $benefs = db()->query('SELECT id_beneficiaire AS id, nom, prenom FROM beneficiaire WHERE id_utilisateur IS NULL AND archive = 0 ORDER BY nom, prenom')->fetchAll();
-    json_out(200, ['ok' => true, 'items' => $comptes, 'roles' => $roles, 'intervenants_libres' => $libres, 'aidants_libres' => $aidants, 'beneficiaires_libres' => $benefs]);
+    // Listes de fiches sans compte : chacune est facultative, une table manquante ne doit pas bloquer la page.
+    $libres = [];
+    foreach (['intervenants_libres' => 'SELECT id_intervenant AS id, nom, prenom FROM intervenant WHERE id_utilisateur IS NULL AND actif = 1 ORDER BY nom, prenom',
+              'aidants_libres' => 'SELECT id_aidant AS id, nom, prenom FROM proche_aidant WHERE id_utilisateur IS NULL AND actif = 1 ORDER BY nom, prenom',
+              'beneficiaires_libres' => 'SELECT id_beneficiaire AS id, nom, prenom FROM beneficiaire WHERE id_utilisateur IS NULL AND archive = 0 ORDER BY nom, prenom'] as $cle => $sql) {
+        try { $libres[$cle] = db()->query($sql)->fetchAll(); }
+        catch (PDOException $e) {
+            error_log('[API] utilisateurs : ' . $cle . ' : ' . $e->getMessage());
+            $libres[$cle] = [];
+            $avert[] = 'Liste « ' . $cle . ' » indisponible : ' . $e->getMessage();
+        }
+    }
+    json_out(200, ['ok' => true, 'items' => $comptes, 'roles' => $roles, 'avertissements' => $avert] + $libres);
 }
 
 if ($methode === 'POST') {

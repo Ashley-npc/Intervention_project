@@ -29,9 +29,18 @@ function corps_json(): array {
     return $data;
 }
 
-// Toute erreur imprévue (base injoignable, colonne manquante…) devient une réponse JSON propre.
-// Le détail est écrit dans la console du serveur PHP (php -S), pas envoyé au navigateur.
+// Toute erreur imprevue (base injoignable, colonne manquante...) devient une reponse JSON propre.
+// Le detail est ecrit dans la console du serveur PHP. En local (127.0.0.1) il est aussi renvoye au navigateur pour faciliter le depannage.
 set_exception_handler(function ($e) {
     error_log('[API] ' . get_class($e) . ' : ' . $e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ')');
-    json_out(500, ['ok' => false, 'message' => 'Erreur serveur : voir la console du serveur PHP.']);
+    $msg = 'Erreur serveur : voir la console du serveur PHP.';
+    $local = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true);
+    if ($local) {
+        $m = $e->getMessage();
+        $msg = 'Erreur serveur : ' . $m;
+        if (preg_match('/42S02|42S22|no such (table|column)|Unknown column|doesn\'t exist/i', $m)) {
+            $msg .= ' -> Il manque une table ou une colonne dans la base : lancez les scripts ajout-roles.sql, ajout-colonnes.sql, ajout-colonnes-phase2.sql.';
+        }
+    }
+    json_out(500, ['ok' => false, 'message' => $msg]);
 });
