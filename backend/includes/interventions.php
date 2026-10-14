@@ -50,6 +50,7 @@ function intervention_vers_front(array $l): array {
         'beneficiaire_nom' => $l['b_nom'], 'beneficiaire_prenom' => $l['b_prenom'],
         'intervenant_nom' => $l['v_nom'], 'intervenant_prenom' => $l['v_prenom'],
         'a_compte_rendu' => !empty($l['id_compte_rendu']),
+        'id_medecin' => isset($l['id_medecin']) ? (int)$l['id_medecin'] : null,
     ];
 }
 const SELECT_INTERVENTION =

@@ -3,7 +3,7 @@
 //   GET  liens-aidants.php?id_beneficiaire=3    liens d'un bénéficiaire (+ aidants disponibles)
 //   POST liens-aidants.php {id_beneficiaire, id_aidant, lien_parente?, planning: bool, etat: bool}   crée ou met à jour le lien
 //   POST liens-aidants.php {id_beneficiaire, id_aidant, retirer: true}                               supprime le lien (pas les personnes)
-// Autorisations : « planning » = voit les visites prévues et passées ; « etat » = voit aussi l'état du bénéficiaire (compte rendu validé).
+// Autorisations : « planning » = voit les visites prévues et passées ; « etat » = voit aussi l'état du bénéficiaire (compte rendu validé) ; « medical » = voit les informations essentielles du dossier médical.
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/validation.php';
@@ -17,7 +17,7 @@ if ($methode === 'GET') {
                          FROM lien_beneficiaire_aidant l JOIN proche_aidant a ON a.id_aidant = l.id_aidant WHERE l.id_beneficiaire = ? ORDER BY a.nom');
     $st->execute([$b]);
     $liens = $st->fetchAll();
-    foreach ($liens as &$l) { $auto = explode(',', (string)$l['autorisations']); $l['planning'] = in_array('planning', $auto, true); $l['etat'] = in_array('etat', $auto, true); }
+    foreach ($liens as &$l) { $auto = explode(',', (string)$l['autorisations']); $l['planning'] = in_array('planning', $auto, true); $l['etat'] = in_array('etat', $auto, true); $l['medical'] = in_array('medical', $auto, true); }
     unset($l);
     $st = db()->prepare('SELECT id_aidant AS id, nom, prenom FROM proche_aidant WHERE actif = 1 AND id_aidant NOT IN (SELECT id_aidant FROM lien_beneficiaire_aidant WHERE id_beneficiaire = ?) ORDER BY nom');
     $st->execute([$b]);
@@ -39,6 +39,7 @@ if ($erreurs) json_out(422, ['ok' => false, 'message' => 'Certains champs sont �
 $auto = [];
 if (!empty($d['planning'])) $auto[] = 'planning';
 if (!empty($d['etat'])) $auto[] = 'etat';
+if (!empty($d['medical'])) $auto[] = 'medical';
 $st = db()->prepare('SELECT 1 FROM lien_beneficiaire_aidant WHERE id_beneficiaire = ? AND id_aidant = ?'); $st->execute([$b, $a]);
 if ($st->fetchColumn()) {
     db()->prepare('UPDATE lien_beneficiaire_aidant SET lien_parente = ?, autorisations = ? WHERE id_beneficiaire = ? AND id_aidant = ?')->execute([$v['lien_parente'], implode(',', $auto), $b, $a]);

@@ -1,7 +1,7 @@
 // Journal d'audit : qui a fait quoi et quand (lecture seule). Administrateur, direction, responsable qualite.
 Shell.demarrer(function (contenu) {
   document.title = 'Journal · Suivi à domicile';
-  var ACTIONS = { connexion: 'Connexion', creation: 'Création', modification: 'Modification', annulation: 'Annulation', validation: 'Validation',
+  var ACTIONS = { connexion: 'Connexion', consultation: 'Consultation', creation: 'Création', modification: 'Modification', annulation: 'Annulation', validation: 'Validation',
     activation: 'Activation', desactivation: 'Désactivation', reinitialisation_mdp: 'Mot de passe réinitialisé' };
   contenu.innerHTML = '<div class="page-head"><div><h1>Journal d\'audit</h1><p id="compte"></p></div></div>' +
     '<section class="card"><div class="toolbar"><input type="text" id="q" placeholder="Utilisateur, objet ou détail" aria-label="Rechercher">' +

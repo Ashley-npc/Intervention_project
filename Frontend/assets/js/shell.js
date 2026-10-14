@@ -7,7 +7,7 @@ var Shell = (function () {
     if (role === 'coordinateur' || role === 'administrateur') {
       l.push(['Planning', 'interventions/planning.html', 'planning'], ['Bénéficiaires', 'beneficiaires/liste.html', 'beneficiaires'],
              ['Intervenants', 'intervenants/liste.html', 'intervenants'], ['Comptes rendus', 'interventions/comptes-rendus.html', 'comptes-rendus']);
-      l.push(['Proches aidants', 'aidants/liste.html', 'aidants']);
+      l.push(['Proches aidants', 'aidants/liste.html', 'aidants'], ['Médecins', 'medecins/liste.html', 'medecins']);
       if (role === 'administrateur') l.push(['Facturation', 'facturation/factures.html', 'factures'], ['Utilisateurs', 'admin/utilisateurs.html', 'utilisateurs']);
     } else if (role === 'facturation') {
       l.push(['Factures', 'facturation/factures.html', 'factures'], ['Nouvelle facture', 'facturation/nouvelle.html', 'nouvelle'], ['Tarifs', 'facturation/tarifs.html', 'tarifs']);

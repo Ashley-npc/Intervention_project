@@ -11,7 +11,7 @@ $aujourdhui = date('Y-m-d');
 if ($user['role'] === 'beneficiaire') {
     $st = db()->prepare('SELECT id_beneficiaire, nom, prenom FROM beneficiaire WHERE id_utilisateur = ? AND archive = 0');
     $st->execute([$user['id']]);
-    $cibles = array_map(function ($b) { $b['planning'] = true; $b['etat'] = false; $b['lien'] = null; return $b; }, $st->fetchAll());
+    $cibles = array_map(function ($b) { $b['planning'] = true; $b['etat'] = false; $b['medical'] = true; $b['lien'] = null; return $b; }, $st->fetchAll());
 } else {
     $st = db()->prepare('SELECT b.id_beneficiaire, b.nom, b.prenom, l.lien_parente AS lien, l.autorisations
                          FROM proche_aidant a JOIN lien_beneficiaire_aidant l ON l.id_aidant = a.id_aidant
@@ -21,7 +21,7 @@ if ($user['role'] === 'beneficiaire') {
     $cibles = [];
     foreach ($st->fetchAll() as $b) {
         $auto = explode(',', (string)$b['autorisations']);
-        $b['planning'] = in_array('planning', $auto, true); $b['etat'] = in_array('etat', $auto, true);
+        $b['planning'] = in_array('planning', $auto, true); $b['etat'] = in_array('etat', $auto, true); $b['medical'] = in_array('medical', $auto, true);
         unset($b['autorisations']);
         $cibles[] = $b;
     }
@@ -31,7 +31,7 @@ $colonnes = "i.id_intervention AS id, i.date, i.heure_debut, i.heure_fin, i.type
              FROM intervention i JOIN intervenant v ON v.id_intervenant = i.id_intervenant";
 $sortie = [];
 foreach ($cibles as $b) {
-    $fiche = ['id' => (int)$b['id_beneficiaire'], 'prenom' => $b['prenom'], 'nom' => $b['nom'], 'lien' => $b['lien'], 'voit_planning' => $b['planning'], 'voit_etat' => $b['etat'],
+    $fiche = ['id' => (int)$b['id_beneficiaire'], 'prenom' => $b['prenom'], 'nom' => $b['nom'], 'lien' => $b['lien'], 'voit_planning' => $b['planning'], 'voit_etat' => $b['etat'], 'voit_medical' => $b['medical'],
               'prochaines' => [], 'dernieres' => [], 'etat' => null];
     if ($b['planning']) {
         $st = db()->prepare("SELECT $colonnes WHERE i.id_beneficiaire = ? AND i.date >= ? AND i.statut <> 'annulee' ORDER BY i.date, i.heure_debut LIMIT 20");

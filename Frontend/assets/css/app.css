@@ -389,3 +389,5 @@ form > .actions { margin-top: 18px; }
 .agenda .tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 .agenda .cote .btn { width: auto; flex: none; }
 @media (max-width: 820px) { .agenda li .cote { grid-column: 2; align-items: flex-start; } .agenda .tags { justify-content: flex-start; } }
+.agenda li.sans-heure { grid-template-columns: 1fr auto; }
+@media (max-width: 820px) { .agenda li.sans-heure { grid-template-columns: 1fr auto; } .agenda li.sans-heure .cote { grid-column: auto; align-items: flex-end; } }

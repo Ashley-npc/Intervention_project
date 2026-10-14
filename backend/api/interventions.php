@@ -111,6 +111,16 @@ if ($methode === 'POST' || $methode === 'PUT') {
         if ($id_v) $v['id_intervenant'] = $id_v;
     }
 
+    // Médecin prescripteur (facultatif) : vide = aucun.
+    if (array_key_exists('id_medecin', $donnees)) {
+        $id_m = (int)$donnees['id_medecin'];
+        if ($id_m <= 0) $v['id_medecin'] = null;
+        else {
+            $stm = db()->prepare('SELECT COUNT(*) FROM medecin_prescripteur WHERE id_medecin = ?'); $stm->execute([$id_m]);
+            if ((int)$stm->fetchColumn()) $v['id_medecin'] = $id_m; else $erreurs['id_medecin'] = 'Médecin introuvable.';
+        }
+    }
+
     // Valeurs finales (envoyées, sinon celles déjà en base) pour les contrôles croisés.
     $date  = $v['date']        ?? ($actuelle['date'] ?? null);
     $debut = $v['heure_debut'] ?? ($actuelle ? substr($actuelle['heure_debut'] . '', 0, 8) : null);

@@ -38,8 +38,9 @@ if ($methode === 'GET') {
         $c['id'] = (int)$c['id']; $c['actif'] = (bool)$c['actif']; $c['inactif'] = !$c['actif'];
         $c['mdp_temporaire'] = (bool)$c['doit_changer_mot_de_passe'];
         $c['nom_complet'] = trim(($c['u_prenom'] ?? '') . ' ' . ($c['u_nom'] ?? ''));   // comptes sans fiche
-        $c['intervenant'] = !empty($c['i_nom']) ? $c['i_prenom'] . ' ' . $c['i_nom']
-                          : (!empty($c['a_nom']) ? $c['a_prenom'] . ' ' . $c['a_nom'] : (!empty($c['b_nom']) ? $c['b_prenom'] . ' ' . $c['b_nom'] : null));   // fiche liee, quel que soit le role
+        $fiche = null;   // fiche liee, quel que soit le role : on prend la premiere qui existe
+        foreach (['i', 'a', 'b'] as $k) if (!$fiche && !empty($c[$k . '_nom'])) $fiche = trim(($c[$k . '_prenom'] ?? '') . ' ' . $c[$k . '_nom']);
+        $c['intervenant'] = $fiche;
         unset($c['u_nom'], $c['u_prenom'], $c['doit_changer_mot_de_passe'], $c['i_prenom'], $c['i_nom'], $c['a_prenom'], $c['a_nom'], $c['b_prenom'], $c['b_nom']);
     }
     unset($c);
