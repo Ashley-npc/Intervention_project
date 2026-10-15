@@ -15,7 +15,11 @@ RESSOURCES.beneficiaires.apresFiche = function (x, contenu) {
         h += '<div class="table-wrap stack"><table><thead><tr><th>Personne</th><th>Lien</th><th>Voit le planning</th><th>Voit l\'état</th><th>Voit le dossier médical</th><th></th></tr></thead><tbody>';
         for (i = 0; i < l.length; i++) h += '<tr><td data-l="Personne"><a href="' + FRONT + 'aidants/fiche.html?id=' + l[i].id + '">' + esc(l[i].prenom + ' ' + l[i].nom) + '</a></td><td data-l="Lien">' + esc(l[i].lien_parente || '—') + '</td>' +
           '<td data-l="Voit le planning"><input type="checkbox" data-a="' + l[i].id + '" data-d="planning"' + (l[i].planning ? ' checked' : '') + '></td><td data-l="Voit l\'état"><input type="checkbox" data-a="' + l[i].id + '" data-d="etat"' + (l[i].etat ? ' checked' : '') + '></td><td data-l="Voit le dossier médical"><input type="checkbox" data-a="' + l[i].id + '" data-d="medical"' + (l[i].medical ? ' checked' : '') + '></td>' +
+<<<<<<< HEAD
           '<td><button type="button" class="btn small" data-retirer="' + l[i].id + '">Retirer</button></td></tr>';
+=======
+          '<td>' + btnIco('retirer', 'Retirer ce lien', 'data-retirer="' + l[i].id + '"') + '</td></tr>';
+>>>>>>> PHP-server
         h += '</tbody></table></div><p class="muted">Cases cochées = autorisation du bénéficiaire. « L\'état » partage uniquement l\'état général du dernier compte rendu validé, jamais le détail.</p>';
       }
       if (dispo.length) {

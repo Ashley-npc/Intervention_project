@@ -9,6 +9,7 @@ require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 require __DIR__ . '/../includes/journal.php';
+require __DIR__ . '/../includes/notifications.php';
 
 const GRAVITES = ['mineur', 'important', 'urgent'];
 $user = exiger_connexion(['administrateur', 'coordinateur', 'responsable_qualite', 'direction', 'intervenant']);
@@ -59,6 +60,9 @@ if ($methode === 'POST') {
         ->execute([date('Y-m-d H:i:s'), $desc, $gravite, $id_i]);
     $nouveau = (int)db()->lastInsertId();
     journaliser('creation', 'incident', 'incident ' . $nouveau . ' (' . $gravite . ') sur intervention ' . $id_i);
+    $urgent = $gravite === 'urgent';   // un incident urgent prévient aussi la qualité, en alerte critique
+    notifier(utilisateurs_du_role($urgent ? ['coordinateur', 'responsable_qualite'] : ['coordinateur']),
+             ($urgent ? 'INCIDENT URGENT : ' : 'Incident ' . $gravite . ' : ') . resume_intervention($id_i) . ' - ' . mb_substr($desc, 0, 80), $id_i, $urgent);
     json_out(201, ['ok' => true, 'id' => $nouveau]);
 }
 

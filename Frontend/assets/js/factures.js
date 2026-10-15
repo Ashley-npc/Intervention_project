@@ -21,7 +21,7 @@ Shell.demarrer(function (contenu) {
         h += '<article class="pers"><h3><a href="' + FRONT + 'facturation/facture.html?id=' + f.id + '">' + esc(f.numero) + '</a></h3>' + badgeFacture(f.statut) + '<dl>' +
              '<div><dt>Bénéficiaire</dt><dd>' + esc(f.beneficiaire_prenom + ' ' + f.beneficiaire_nom) + '</dd></div><div><dt>Émise le</dt><dd>' + dateFr(f.date_emission) + '</dd></div>' +
              '<div><dt>Total</dt><dd>' + argent(f.montant_total) + '</dd></div><div><dt>Reste à payer</dt><dd><b>' + argent(f.restant) + '</b></dd></div></dl>' +
-             '<a class="btn small" href="' + FRONT + 'facturation/facture.html?id=' + f.id + '">Ouvrir</a></article>';
+             '' + btnIco('ouvrir', 'Ouvrir', 'href="' + FRONT + 'facturation/facture.html?id=' + f.id + '"', 'a') + '</article>';
       }
       z.innerHTML = railHtml(h);
     });

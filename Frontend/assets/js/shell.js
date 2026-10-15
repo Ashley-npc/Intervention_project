@@ -18,16 +18,26 @@ var Shell = (function () {
   }
   var NOMS = { administrateur: 'Administration', coordinateur: 'Coordination', intervenant: 'Intervenant', responsable_qualite: 'Qualité', direction: 'Direction', facturation: 'Facturation', maintenance: 'Maintenance', proche_aidant: 'Proche aidant', beneficiaire: 'Mes visites' };
 
+  // Cloche : nombre de notifications non lues (rouge s'il y a une alerte critique). Silencieux si l'appel echoue.
+  function majCloche(user) {
+    if (user.doit_changer) return;
+    appel('notifications.php?compte=1').then(function (r) {
+      var n = document.getElementById('cloche-n'); if (!r.ok || !n) return;
+      n.textContent = r.data.non_lues; n.hidden = !r.data.non_lues;
+      n.className = 'badge ' + (r.data.critiques ? 'danger' : 'warn');
+    });
+  }
   function coque(user) {
     var courant = document.body.getAttribute('data-menu') || document.body.getAttribute('data-ressource') || '', l = liens(user.role), nav = '';
-    for (var i = 0; i < l.length; i++) nav += '<a href="' + FRONT + l[i][1] + '"' + (l[i][2] === courant ? ' aria-current="page"' : '') + '><span class="dot"></span>' + l[i][0] + '</a>';
+    for (var i = 0; i < l.length; i++) nav += '<a href="' + FRONT + l[i][1] + '"' + (l[i][2] === courant ? ' aria-current="page"' : '') + '>' + ico('n_' + l[i][2].replace(/-/g, '_')) + l[i][0] + '</a>';
     document.body.innerHTML =
       '<div class="app"><aside class="sidebar"><div class="brand">Suivi à domicile<small>' + esc(NOMS[user.role] || user.role) + '</small></div>' +
-      '<nav class="nav" aria-label="Menu principal">' + nav + '<span class="group">Compte</span><a href="' + FRONT + 'auth/mot-de-passe.html"><span class="dot"></span>Mot de passe</a></nav></aside>' +
-      '<div class="main"><header class="topbar"><span></span><div class="user"><div class="avatar">' + esc(user.identifiant.slice(0, 2).toUpperCase()) +
+      '<nav class="nav" aria-label="Menu principal">' + nav + '<span class="group">Compte</span><a href="' + FRONT + 'notifications/liste.html"' + (courant === 'notifications' ? ' aria-current="page"' : '') + '>' + ico('n_notifications') + 'Notifications</a><a href="' + FRONT + 'auth/mot-de-passe.html">' + ico('n_mdp') + 'Mot de passe</a></nav></aside>' +
+      '<div class="main"><header class="topbar"><span></span><div class="user"><a class="cloche" id="cloche" href="' + FRONT + 'notifications/liste.html" title="Notifications" aria-label="Notifications">' + ico('cloche') + ' <span class="badge" id="cloche-n" hidden>0</span></a><div class="avatar">' + esc(user.identifiant.slice(0, 2).toUpperCase()) +
       '</div><div class="who">' + esc(user.identifiant) + '<span>' + esc(NOMS[user.role] || user.role) + '</span></div>' +
-      '<a class="btn small" href="' + FRONT + 'auth/login.html" data-logout>Déconnexion</a></div></header><main class="content" id="contenu"></main></div></div>';
+      '' + btnIco('deconnexion', 'Déconnexion', 'href="' + FRONT + 'auth/login.html" data-logout', 'a') + '</div></header><main class="content" id="contenu"></main></div></div>';
     window.initTiroir();
+    majCloche(user);
     return document.getElementById('contenu');
   }
   function demarrer(fn) {

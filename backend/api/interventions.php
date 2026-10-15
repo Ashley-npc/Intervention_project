@@ -8,6 +8,7 @@
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/journal.php';
+require __DIR__ . '/../includes/notifications.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 
@@ -152,11 +153,13 @@ if ($methode === 'POST' || $methode === 'PUT') {
         db()->prepare('INSERT INTO intervention (' . implode(', ', $cols) . ') VALUES (' . implode(', ', array_fill(0, count($cols), '?')) . ')')->execute(array_values($v));
         $nouvelle = (int)db()->lastInsertId();
         journaliser('creation', 'intervention', 'intervention ' . $nouvelle . ' le ' . $date);
+        notifier(destinataires_intervention($nouvelle), 'Nouvelle intervention : ' . resume_intervention($nouvelle), $nouvelle, !empty($v['urgente']));
         json_out(201, ['ok' => true, 'id' => $nouvelle]);
     }
     $sets = implode(', ', array_map(function ($c) { return "$c = ?"; }, array_keys($v)));
     db()->prepare("UPDATE intervention SET $sets WHERE id_intervention = ?")->execute(array_merge(array_values($v), [$id]));
     journaliser(est_annulee($statut) ? 'annulation' : 'modification', 'intervention', 'intervention ' . $id);
+    notifier(destinataires_intervention($id), (est_annulee($statut) ? 'Intervention annulée : ' : 'Intervention modifiée : ') . resume_intervention($id), $id, !empty($v['urgente']));
     json_out(200, ['ok' => true, 'id' => $id]);
 }
 
