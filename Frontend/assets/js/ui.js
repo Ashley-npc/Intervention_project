@@ -77,8 +77,27 @@ function badgeStatut(i) {
   return '<span class="badge ' + cls + '">' + esc(txt) + '</span>' + (i.urgente ? ' <span class="badge danger">Urgent</span>' : '') + (i.validee ? ' <span class="badge ok">Validée</span>' : '');
 }
 // Liste de cartes en grille (1 à 4 colonnes selon l'écran), avec défilement vers le bas : voir .rail dans app.css.
+function initiales(nom) {
+  var p = String(nom || '').replace(/[^A-Za-z\u00C0-\u00FF ]/g, '').split(' ').filter(function (m) { return m; });
+  return ((p[0] || '?').charAt(0) + (p.length > 1 ? p[p.length - 1].charAt(0) : '')).toUpperCase();
+}
+// Carte compacte : avatar (initiales) | titre + badges + infos sur une ligne | icone d'action. 'infos' = liste de textes deja echappes.
+function persHtml(o) {
+  var corps = o.corps || ('<div class="u1"><span class="nm"><b class="nmi">' + (o.lien ? '<a href="' + o.lien + '">' + esc(o.titre) + '</a>' : esc(o.titre)) + '</b></span>' +
+    (o.badges ? ' ' + o.badges : '') + (o.cote ? '<span class="cote">' + o.cote + '</span>' : '') + '</div><div class="u2 wrap">' + o.infos.join(' <i class="sep">·</i> ') + '</div>');
+  return '<article class="pers' + (o.off ? ' off' : '') + '"><span class="uav">' + esc(initiales(o.avatar || o.titre)) + '</span><div class="uinfo">' + corps + '</div>' + (o.action || '') + '</article>';
+}
 function railHtml(cartes) { return '<div class="rail">' + cartes + '</div>'; }
-function railInit() {}   // plus rien à brancher (conservé pour compatibilité)
+// Noms trop longs : ils defilent doucement (aller-retour) au lieu d'etre coupes. Sans effet si le nom tient.
+function railInit() {
+  setTimeout(function () {
+    var l = document.querySelectorAll('.pers .nm');
+    for (var i = 0; i < l.length; i++) {
+      var d = l[i].firstChild.scrollWidth - l[i].clientWidth;
+      if (d > 2) { l[i].style.setProperty('--d', d + 'px'); l[i].className = 'nm long'; l[i].title = l[i].textContent; }
+    }
+  }, 50);
+}
 // Affiche les erreurs de champs renvoyées par l'API (422/409) sous chaque champ #e_<nom>.
 function montrerErreurs(r, msgId) {
   var m = document.getElementById(msgId || 'msg'); m.textContent = r.data.message || 'Erreur.'; m.hidden = false;

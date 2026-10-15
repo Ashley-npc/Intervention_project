@@ -27,13 +27,16 @@
         h = '';
         for (var i = 0; i < items.length; i++) {
           var x = items[i];
-          h += '<article class="pers' + (x.inactif ? ' off' : '') + '"><h3><a href="' + R.pages.fiche + '?id=' + x.id + '">' + esc(R.nomComplet(x)) + '</a></h3>' + badgeEtat(x.inactif) + '<dl>';
+          var infos = [], cote = '';
           for (var c = 0; c < R.colonnes.length; c++) {
             var col = R.colonnes[c]; if (col.k === 'nom') continue;
             var v = col.f ? col.f(x) : x[col.k];
-            h += '<div><dt>' + col.l + '</dt><dd>' + (v === null || v === '' ? '—' : esc(v)) + '</dd></div>';
+            if (v === null || v === undefined || v === '') { if (col.k.indexOf('nb_') === 0) v = '0'; else continue; }
+            if (col.cote) { cote = (col.court ? col.court + ' ' : '') + esc(v); continue; }   // ex. l'age : sur la ligne du nom, a droite
+            infos.push((col.etiq ? '<span class="et">' + (col.court || col.l + ' :') + '</span> ' : '') + esc(v));   // seules les colonnes « etiq » gardent leur titre (les autres sont evidentes)
           }
-          h += '</dl>' + btnIco('ouvrir', 'Ouvrir', 'href="' + R.pages.fiche + '?id=' + x.id + '"', 'a') + '</article>';
+          h += persHtml({ titre: R.nomComplet(x), lien: R.pages.fiche + '?id=' + x.id, off: x.inactif, badges: badgeEtat(x.inactif), cote: cote, infos: infos.length ? infos : ['—'],
+                          action: btnIco('ouvrir', 'Ouvrir', 'href="' + R.pages.fiche + '?id=' + x.id + '"', 'a') });
         }
         document.getElementById('tableau').innerHTML = railHtml(h);
         railInit(document.getElementById('tableau'));

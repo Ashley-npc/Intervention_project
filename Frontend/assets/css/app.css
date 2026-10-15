@@ -391,8 +391,6 @@ form > .actions { margin-top: 18px; }
 @media (max-width: 820px) { .agenda li .cote { grid-column: 2; align-items: flex-start; } .agenda .tags { justify-content: flex-start; } }
 .agenda li.sans-heure { grid-template-columns: 1fr auto; }
 @media (max-width: 820px) { .agenda li.sans-heure { grid-template-columns: 1fr auto; } .agenda li.sans-heure .cote { grid-column: auto; align-items: flex-end; } }
-<<<<<<< HEAD
-=======
 /* Cloche de notifications (haut de page) */
 .cloche { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none; padding: 6px 10px; border-radius: 8px; background: var(--soft); }
 .cloche .badge { padding: 0 8px; }
@@ -420,4 +418,37 @@ td.actions { flex-wrap: nowrap; }
 .urole { color: var(--muted); font-size: 13px; }
 .u2 { color: var(--muted); font-size: 13px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .uact { flex: none; display: flex; gap: 6px; }
->>>>>>> PHP-server
+
+/* Cartes compactes en ligne (listes de fiches) : remplissent la largeur */
+.rail { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important; gap: 10px; }
+.pers { flex-direction: row; align-items: center; gap: 12px; padding: 12px; }
+.pers .uinfo { flex: 1; min-width: 0; }
+.pers .u1 b { font-size: 15px; }
+.pers .u1 a { color: var(--brand-dark); text-decoration: none; }
+.pers .u2.wrap { white-space: normal; }
+.pers .sep { font-style: normal; color: var(--muted); }
+.pers .et { font-size: 12px; color: var(--muted); }
+.pers .btn.ic { flex: none; }
+
+/* Carte : icone et avatar en haut (alignes avec le nom), age a droite du nom, nom long qui defile */
+.pers { align-items: flex-start; }
+.pers .u1 { flex-wrap: nowrap; align-items: center; gap: 8px; }
+.pers .nm { flex: 0 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; }
+.pers .nmi { display: inline-block; }
+.pers .cote { margin-left: auto; flex: none; font-size: 13px; color: var(--muted); }
+.pers .u1 .badge { flex: none; }
+.pers .nm.long .nmi { animation: defile 9s ease-in-out infinite alternate; }
+@keyframes defile { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(calc(-1 * var(--d))); } }
+@media (prefers-reduced-motion: reduce) { .pers .nm.long { text-overflow: ellipsis; } .pers .nm.long .nmi { animation: none; } }
+
+/* Facture : grille 2 x 2 (numero + beneficiaire | montant  /  statut | reste) */
+.fgrid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; }
+.fgrid .nmi a { color: var(--brand-dark); text-decoration: none; }
+.fgrid .r { text-align: right; white-space: nowrap; font-size: 13px; }
+.fgrid .r b { color: var(--ink); }
+.fgrid .bn { font-weight: 400; font-size: 13px; color: var(--muted); margin-left: 4px; }
+.fgrid .lft { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.fgrid .lft > b { flex: none; font-size: 15px; }
+.fgrid .lft .bn { margin-left: 0; }
+.rail { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important; }
+.fgrid .lft { overflow: hidden; }

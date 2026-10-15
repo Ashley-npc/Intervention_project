@@ -18,12 +18,14 @@ Shell.demarrer(function (contenu) {
       if (!it.length) { z.innerHTML = '<p class="empty">Aucune facture.</p>'; return; }
       for (var i = 0; i < it.length; i++) {
         var f = it[i]; tot += f.restant;
-        h += '<article class="pers"><h3><a href="' + FRONT + 'facturation/facture.html?id=' + f.id + '">' + esc(f.numero) + '</a></h3>' + badgeFacture(f.statut) + '<dl>' +
-             '<div><dt>Bénéficiaire</dt><dd>' + esc(f.beneficiaire_prenom + ' ' + f.beneficiaire_nom) + '</dd></div><div><dt>Émise le</dt><dd>' + dateFr(f.date_emission) + '</dd></div>' +
-             '<div><dt>Total</dt><dd>' + argent(f.montant_total) + '</dd></div><div><dt>Reste à payer</dt><dd><b>' + argent(f.restant) + '</b></dd></div></dl>' +
-             '' + btnIco('ouvrir', 'Ouvrir', 'href="' + FRONT + 'facturation/facture.html?id=' + f.id + '"', 'a') + '</article>';
+        var bn = f.beneficiaire_prenom + ' ' + f.beneficiaire_nom;
+        h += persHtml({ avatar: bn, action: btnIco('ouvrir', 'Ouvrir', 'href="' + FRONT + 'facturation/facture.html?id=' + f.id + '"', 'a'),
+              corps: '<div class="fgrid"><span class="lft"><b><a href="' + FRONT + 'facturation/facture.html?id=' + f.id + '">' + esc(f.numero) + '</a></b><span class="nm"><b class="nmi bn">' + esc(bn) + '</b></span></span>' +
+                     '<span class="r"><span class="et">Montant :</span> ' + argent(f.montant_total) + '</span>' +
+                     '<span class="l">' + badgeFacture(f.statut) + '</span>' +
+                     '<span class="r"><span class="et">Reste :</span> <b>' + argent(f.restant) + '</b></span></div>' });
       }
-      z.innerHTML = railHtml(h);
+      z.innerHTML = railHtml(h); railInit();
     });
   }
   q.addEventListener('input', function () { clearTimeout(minuteur); minuteur = setTimeout(charger, 250); });
