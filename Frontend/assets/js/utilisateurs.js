@@ -15,7 +15,7 @@ Shell.demarrer(function (contenu, moi) {
       '<div class="field" id="bloc-prenom" hidden><label for="c_prenom">Prénom *</label><input id="c_prenom" type="text" maxlength="60" autocomplete="off"><span class="field-err" id="e_prenom"></span></div>' +
       '<div class="field large" id="bloc-lie" hidden><label for="c_lie" id="lib-lie">Fiche liée *</label><select id="c_lie"></select><small id="aide-lie"></small><span class="field-err" id="e_lie"></span></div>' +
       '</div><div class="actions"><button class="btn" type="submit" id="ok">Créer le compte</button></div></form></section>' +
-      '<section class="card"><header><h2>Comptes</h2></header><div class="table-wrap stack" id="liste"></div></section>';
+      '<section class="card"><header><h2>Comptes</h2></header><div id="liste"></div></section>';
     charger();
   }
   function charger() {
@@ -30,15 +30,17 @@ Shell.demarrer(function (contenu, moi) {
       for (i = 0; i < donnees.roles.length; i++) roles += '<option value="' + esc(donnees.roles[i]) + '">' + esc(donnees.roles[i]) + '</option>';
       document.getElementById('c_role').innerHTML = roles;
       majRole();
-      var h = '<table><thead><tr><th>Identifiant</th><th>Rôle</th><th>Nom / fiche liée</th><th>Dernière connexion</th><th></th></tr></thead><tbody>';
+      var h = '<ul class="ulist">';
       for (i = 0; i < donnees.items.length; i++) {
-        var u = donnees.items[i];
-        h += '<tr' + (u.inactif ? ' class="off"' : '') + '><td data-l="Identifiant"><b>' + esc(u.identifiant) + '</b> ' + (u.inactif ? '<span class="badge grey">Désactivé</span>' : '') + (u.mdp_temporaire ? ' <span class="badge warn">Mot de passe temporaire</span>' : '') + '</td>' +
-             '<td data-l="Rôle">' + esc(u.role) + '</td><td data-l="Nom / fiche liée">' + esc(u.nom_complet || u.intervenant || '—') + '</td><td data-l="Dernière connexion">' + esc(u.derniere_connexion || 'Jamais') + '</td>' +
-             '<td class="actions"><button type="button" class="btn small" data-act="reset" data-id="' + u.id + '">Réinitialiser</button> ' +
-             (u.identifiant === moi.identifiant ? '' : '<button type="button" class="btn small" data-act="actif" data-id="' + u.id + '" data-actif="' + (u.actif ? 0 : 1) + '">' + (u.actif ? 'Désactiver' : 'Réactiver') + '</button>') + '</td></tr>';
+        var u = donnees.items[i], nom = u.nom_complet || u.intervenant || u.identifiant, ini = nom.replace(/[^A-Za-zÀ-ÿ ]/g, '').split(' ');
+        ini = ((ini[0] || '?').charAt(0) + (ini.length > 1 ? ini[ini.length - 1].charAt(0) : '')).toUpperCase();
+        h += '<li class="urow' + (u.inactif ? ' off' : '') + '"><span class="uav">' + esc(ini) + '<i class="' + (u.inactif ? 'off' : 'on') + '" title="' + (u.inactif ? 'Désactivé' : 'Actif') + '"></i></span>' +
+             '<div class="uinfo"><div class="u1"><b>' + esc(nom) + '</b> <span class="urole">' + esc(u.role) + '</span>' + (u.mdp_temporaire ? ' <span class="badge warn">Mot de passe temporaire</span>' : '') + (u.inactif ? ' <span class="badge grey">Désactivé</span>' : '') + '</div>' +
+             '<div class="u2">' + (nom !== u.identifiant ? esc(u.identifiant) + ' · ' : '') + 'Dernière connexion : ' + esc(u.derniere_connexion || 'jamais') + '</div></div>' +
+             '<div class="uact">' + btnIco('reinit', 'Réinitialiser le mot de passe', 'data-act="reset" data-id="' + u.id + '"') +
+             (u.identifiant === moi.identifiant ? '' : btnIco(u.actif ? 'desactiver' : 'reactiver', u.actif ? 'Désactiver le compte' : 'Réactiver le compte', 'data-act="actif" data-id="' + u.id + '" data-actif="' + (u.actif ? 0 : 1) + '"')) + '</div></li>';
       }
-      document.getElementById('liste').innerHTML = h + '</tbody></table>';
+      document.getElementById('liste').innerHTML = h + '</ul>';
     });
   }
   // Rôles qui doivent être reliés à une fiche : intervenant, proche_aidant, beneficiaire.

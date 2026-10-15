@@ -8,6 +8,7 @@
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/journal.php';
+require __DIR__ . '/../includes/notifications.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 
@@ -111,6 +112,16 @@ if ($methode === 'POST' || $methode === 'PUT') {
         if ($id_v) $v['id_intervenant'] = $id_v;
     }
 
+    // Médecin prescripteur (facultatif) : vide = aucun.
+    if (array_key_exists('id_medecin', $donnees)) {
+        $id_m = (int)$donnees['id_medecin'];
+        if ($id_m <= 0) $v['id_medecin'] = null;
+        else {
+            $stm = db()->prepare('SELECT COUNT(*) FROM medecin_prescripteur WHERE id_medecin = ?'); $stm->execute([$id_m]);
+            if ((int)$stm->fetchColumn()) $v['id_medecin'] = $id_m; else $erreurs['id_medecin'] = 'Médecin introuvable.';
+        }
+    }
+
     // Valeurs finales (envoyées, sinon celles déjà en base) pour les contrôles croisés.
     $date  = $v['date']        ?? ($actuelle['date'] ?? null);
     $debut = $v['heure_debut'] ?? ($actuelle ? substr($actuelle['heure_debut'] . '', 0, 8) : null);
@@ -142,11 +153,13 @@ if ($methode === 'POST' || $methode === 'PUT') {
         db()->prepare('INSERT INTO intervention (' . implode(', ', $cols) . ') VALUES (' . implode(', ', array_fill(0, count($cols), '?')) . ')')->execute(array_values($v));
         $nouvelle = (int)db()->lastInsertId();
         journaliser('creation', 'intervention', 'intervention ' . $nouvelle . ' le ' . $date);
+        notifier(destinataires_intervention($nouvelle), 'Nouvelle intervention : ' . resume_intervention($nouvelle), $nouvelle, !empty($v['urgente']));
         json_out(201, ['ok' => true, 'id' => $nouvelle]);
     }
     $sets = implode(', ', array_map(function ($c) { return "$c = ?"; }, array_keys($v)));
     db()->prepare("UPDATE intervention SET $sets WHERE id_intervention = ?")->execute(array_merge(array_values($v), [$id]));
     journaliser(est_annulee($statut) ? 'annulation' : 'modification', 'intervention', 'intervention ' . $id);
+    notifier(destinataires_intervention($id), (est_annulee($statut) ? 'Intervention annulée : ' : 'Intervention modifiée : ') . resume_intervention($id), $id, !empty($v['urgente']));
     json_out(200, ['ok' => true, 'id' => $id]);
 }
 

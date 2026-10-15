@@ -33,7 +33,7 @@
             var v = col.f ? col.f(x) : x[col.k];
             h += '<div><dt>' + col.l + '</dt><dd>' + (v === null || v === '' ? '—' : esc(v)) + '</dd></div>';
           }
-          h += '</dl><a class="btn small" href="' + R.pages.fiche + '?id=' + x.id + '">Ouvrir</a></article>';
+          h += '</dl>' + btnIco('ouvrir', 'Ouvrir', 'href="' + R.pages.fiche + '?id=' + x.id + '"', 'a') + '</article>';
         }
         document.getElementById('tableau').innerHTML = railHtml(h);
         railInit(document.getElementById('tableau'));

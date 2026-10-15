@@ -16,7 +16,7 @@ Shell.demarrer(function (contenu, user) {
         var x = items[i];
         s += '<li><time>' + x.heure_debut + '<span>' + x.heure_fin + '</span></time><div><b>' + esc(x.beneficiaire_prenom + ' ' + x.beneficiaire_nom) + '</b><span>' +
              esc(lib(x.type)) + ' · ' + esc(x.intervenant_prenom + ' ' + x.intervenant_nom) + '</span></div><aside class="cote"><span class="tags">' + badgeStatut(x) + '</span>' +
-             (lien ? '<a class="btn small" href="' + FRONT + lien + '?id=' + x.id + '">Ouvrir</a>' : '') + '</aside></li>';
+             (lien ? btnIco('ouvrir', 'Ouvrir', 'href="' + FRONT + lien + '?id=' + x.id + '"', 'a') : '') + '</aside></li>';
       }
       return s + '</ul>';
     }
@@ -73,7 +73,7 @@ Shell.demarrer(function (contenu, user) {
     for (var i = 0; i < items.length; i++) {
       var x = items[i];
       s += '<li><time>' + x.heure_debut + '<span>' + x.heure_fin + '</span></time><div><b>' + esc(x.beneficiaire_prenom + ' ' + x.beneficiaire_nom) + '</b><span>' + esc(lib(x.type)) + ' · ' + esc(lib(x.lieu)) + '</span></div>' +
-           '<aside class="cote"><span class="tags">' + badgeStatut(x) + '</span><a class="btn small" href="' + FRONT + 'espace-intervenant/compte-rendu.html?id=' + x.id + '">' + (x.a_compte_rendu ? 'Voir' : 'Ouvrir') + '</a></aside></li>';
+           '<aside class="cote"><span class="tags">' + badgeStatut(x) + '</span>' + btnIco(x.a_compte_rendu ? 'ouvrir' : 'modifier', x.a_compte_rendu ? 'Voir le compte rendu' : 'Saisir le compte rendu', 'href="' + FRONT + 'espace-intervenant/compte-rendu.html?id=' + x.id + '"', 'a') + '</aside></li>';
     }
     return s + '</ul>';
   }

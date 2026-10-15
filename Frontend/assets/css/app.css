@@ -389,3 +389,32 @@ form > .actions { margin-top: 18px; }
 .agenda .tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 .agenda .cote .btn { width: auto; flex: none; }
 @media (max-width: 820px) { .agenda li .cote { grid-column: 2; align-items: flex-start; } .agenda .tags { justify-content: flex-start; } }
+.agenda li.sans-heure { grid-template-columns: 1fr auto; }
+@media (max-width: 820px) { .agenda li.sans-heure { grid-template-columns: 1fr auto; } .agenda li.sans-heure .cote { grid-column: auto; align-items: flex-end; } }
+/* Cloche de notifications (haut de page) */
+.cloche { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none; padding: 6px 10px; border-radius: 8px; background: var(--soft); }
+.cloche .badge { padding: 0 8px; }
+.badge.danger { background: #fbe3e1; }
+
+/* Boutons icones (SVG en ligne) */
+.btn.ic { padding: 0; width: 36px; height: 36px; justify-content: center; align-items: center; }
+.btn.ic svg, .cloche svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.actions .btn.ic { flex: 0 0 auto; }
+td.actions { flex-wrap: nowrap; }
+.nav a svg { fill: none; stroke: #7f8e9c; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; width: 18px; height: 18px; }
+.nav a[aria-current="page"] svg { stroke: var(--brand); }
+
+/* Liste des comptes : lignes compactes (avatar, nom + role, infos, actions a droite) */
+.ulist { list-style: none; margin: 0; padding: 0; }
+.urow { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.urow:last-child { border-bottom: 0; }
+.urow.off .uinfo { opacity: .65; }
+.uav { position: relative; flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--brand-soft); color: var(--brand-dark); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.uav i { position: absolute; right: -3px; bottom: -3px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; }
+.uav i.on { background: #1fa971; } .uav i.off { background: #aebbc7; }
+.uinfo { flex: 1; min-width: 0; }
+.u1 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.u1 b { font-size: 15px; }
+.urole { color: var(--muted); font-size: 13px; }
+.u2 { color: var(--muted); font-size: 13px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.uact { flex: none; display: flex; gap: 6px; }

@@ -6,6 +6,7 @@
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/journal.php';
+require __DIR__ . '/../includes/notifications.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 
@@ -79,6 +80,7 @@ if ($methode === 'POST') {                                       // ----- saisie
         if (est_doublon($e)) json_out(409, ['ok' => false, 'message' => 'Un compte rendu existe déjà pour cette intervention.']);
         throw $e;
     }
+    notifier(utilisateurs_du_role(['coordinateur']), 'Compte rendu à valider : ' . resume_intervention($id), $id);
     json_out(201, ['ok' => true, 'id' => $id]);
 }
 
@@ -101,6 +103,7 @@ if ($methode === 'PUT') {
         $pdo->prepare("UPDATE intervention SET validee = 1, statut = 'realisee', date_modification = ? WHERE id_intervention = ?")->execute([date('Y-m-d'), $id]);
         $pdo->commit();
         journaliser('validation', 'compte_rendu', 'intervention ' . $id);
+        notifier(intervenant_de($id), 'Compte rendu validé : ' . resume_intervention($id), $id);
         json_out(200, ['ok' => true, 'id' => $id]);
     }
     if ((int)$cr['valide_par_coordinateur'] === 1 || (int)$i['validee'] === 1) {
