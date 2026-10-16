@@ -87,6 +87,15 @@ function persHtml(o) {
     (o.badges ? ' ' + o.badges : '') + (o.cote ? '<span class="cote">' + o.cote + '</span>' : '') + '</div><div class="u2 wrap">' + o.infos.join(' <i class="sep">·</i> ') + '</div>');
   return '<article class="pers' + (o.off ? ' off' : '') + '"><span class="uav">' + esc(initiales(o.avatar || o.titre)) + '</span><div class="uinfo">' + corps + '</div>' + (o.action || '') + '</article>';
 }
+// Carte facture (admin, facturation, tableau de bord) : ligne 1 = beneficiaire (en evidence) + reference discrete | statut ; ligne 2 = montant | reste ; ligne 3 (facultative) = date.
+function factureCarte(f) {
+  var lien = FRONT + 'facturation/facture.html?id=' + f.id;
+  return persHtml({ avatar: f.benef, action: btnIco('ouvrir', 'Ouvrir', 'href="' + lien + '"', 'a'),
+    corps: '<div class="frows"><div class="frow"><span class="lft"><span class="nm"><b class="nmi"><a href="' + lien + '">' + esc(f.benef) + '</a></b></span><span class="fnum">' + esc(f.numero) + '</span></span>' +
+           '<span class="fr">' + badgeFacture(f.statut) + '</span></div>' +
+           '<div class="frow"><span class="fl"><span class="et">Montant :</span> ' + argent(f.total) + '</span><span class="fr"><span class="et">Reste :</span> <b>' + argent(f.restant) + '</b></span></div>' +
+           (f.date ? '<div class="frow"><span class="fl et">Émise le ' + dateFr(f.date) + (f.retard ? ' · <b class="retard">En retard</b>' : '') + '</span></div>' : '') + '</div>' });
+}
 function railHtml(cartes) { return '<div class="rail">' + cartes + '</div>'; }
 // Noms trop longs : ils defilent doucement (aller-retour) au lieu d'etre coupes. Sans effet si le nom tient.
 function railInit() {

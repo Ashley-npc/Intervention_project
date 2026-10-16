@@ -29,10 +29,16 @@ var Shell = (function () {
   }
   function coque(user) {
     var courant = document.body.getAttribute('data-menu') || document.body.getAttribute('data-ressource') || '', l = liens(user.role), nav = '';
-    for (var i = 0; i < l.length; i++) nav += '<a href="' + FRONT + l[i][1] + '"' + (l[i][2] === courant ? ' aria-current="page"' : '') + '>' + ico('n_' + l[i][2].replace(/-/g, '_')) + l[i][0] + '</a>';
+    var GROUPES = { accueil: 'Activité', planning: 'Activité', 'comptes-rendus': 'Activité', incidents: 'Activité', beneficiaires: 'Personnes', intervenants: 'Personnes', aidants: 'Personnes', medecins: 'Personnes',
+                    factures: 'Gestion', nouvelle: 'Gestion', tarifs: 'Gestion', utilisateurs: 'Système', journal: 'Système' }, ORDRE = ['Activité', 'Personnes', 'Gestion', 'Système'];
+    for (var g = 0; g < ORDRE.length; g++) {
+      var bloc = '';
+      for (var i = 0; i < l.length; i++) if ((GROUPES[l[i][2]] || 'Activité') === ORDRE[g]) bloc += '<a href="' + FRONT + l[i][1] + '"' + (l[i][2] === courant ? ' aria-current="page"' : '') + '>' + ico('n_' + l[i][2].replace(/-/g, '_')) + l[i][0] + '</a>';
+      if (bloc) nav += (g > 0 ? '<span class="group sep"></span>' : '') + bloc;
+    }
     document.body.innerHTML =
       '<div class="app"><aside class="sidebar"><div class="brand">Suivi à domicile<small>' + esc(NOMS[user.role] || user.role) + '</small></div>' +
-      '<nav class="nav" aria-label="Menu principal">' + nav + '<span class="group">Compte</span><a href="' + FRONT + 'notifications/liste.html"' + (courant === 'notifications' ? ' aria-current="page"' : '') + '>' + ico('n_notifications') + 'Notifications</a><a href="' + FRONT + 'auth/mot-de-passe.html">' + ico('n_mdp') + 'Mot de passe</a></nav></aside>' +
+      '<nav class="nav" aria-label="Menu principal">' + nav + '<span class="group compte">Compte</span><a href="' + FRONT + 'notifications/liste.html"' + (courant === 'notifications' ? ' aria-current="page"' : '') + '>' + ico('n_notifications') + 'Notifications</a><a href="' + FRONT + 'auth/mot-de-passe.html">' + ico('n_mdp') + 'Mot de passe</a></nav></aside>' +
       '<div class="main"><header class="topbar"><span></span><div class="user"><a class="cloche" id="cloche" href="' + FRONT + 'notifications/liste.html" title="Notifications" aria-label="Notifications">' + ico('cloche') + ' <span class="badge" id="cloche-n" hidden>0</span></a><div class="avatar">' + esc(user.identifiant.slice(0, 2).toUpperCase()) +
       '</div><div class="who">' + esc(user.identifiant) + '<span>' + esc(NOMS[user.role] || user.role) + '</span></div>' +
       '' + btnIco('deconnexion', 'Déconnexion', 'href="' + FRONT + 'auth/login.html" data-logout', 'a') + '</div></header><main class="content" id="contenu"></main></div></div>';

@@ -36,7 +36,9 @@ if ($user['role'] === 'facturation') {
     $mois = date('Y-m');
     $reste = db()->query("SELECT COALESCE(SUM(f.montant_total), 0) - COALESCE(SUM((SELECT COALESCE(SUM(p.montant), 0) FROM paiement p WHERE p.id_facture = f.id_facture)), 0)
                           FROM facture f WHERE f.statut <> 'payee'")->fetchColumn();
-    $st = db()->query("SELECT f.id_facture AS id, f.numero, f.date_emission, f.montant_total, f.statut, b.nom, b.prenom FROM facture f JOIN beneficiaire b ON b.id_beneficiaire = f.id_beneficiaire
+    $st = db()->query("SELECT f.id_facture AS id, f.numero, f.date_emission, f.montant_total, f.statut, b.nom, b.prenom,
+                       COALESCE((SELECT SUM(p.montant) FROM paiement p WHERE p.id_facture = f.id_facture), 0) AS paye
+                       FROM facture f JOIN beneficiaire b ON b.id_beneficiaire = f.id_beneficiaire
                        ORDER BY f.date_emission DESC, f.id_facture DESC LIMIT 5");
     json_out(200, ['ok' => true, 'role' => 'facturation', 'kpis' => [
         'facture_mois' => round(nb('SELECT COALESCE(SUM(montant_total), 0) FROM facture WHERE date_emission LIKE ?', ["$mois%"]), 2),
@@ -79,4 +81,18 @@ $kpis = [
     'urgentes'      => un("SELECT COUNT(*) FROM intervention WHERE urgente = 1 AND date >= ? AND $pas_annulee", [$aujourdhui]),
 ];
 if ($user['role'] === 'administrateur') $kpis['utilisateurs'] = un('SELECT COUNT(*) FROM utilisateur WHERE actif = 1');
-json_out(200, ['ok' => true, 'role' => $user['role'], 'kpis' => $kpis, 'aujourdhui' => $jour, 'charge' => $charge]);
+// Planning de la semaine : nombre d'interventions par jour (lundi -> dimanche).
+$st = db()->prepare("SELECT date, COUNT(*) AS nb, MIN(heure_debut) AS premiere, MAX(heure_fin) AS derniere FROM intervention WHERE date BETWEEN ? AND ? AND $pas_annulee GROUP BY date");
+$st->execute([$lundi, $dimanche]);
+$par_jour = [];
+foreach ($st->fetchAll() as $l) $par_jour[$l['date']] = ['nb' => (int)$l['nb'], 'premiere' => substr((string)$l['premiere'], 0, 5), 'derniere' => substr((string)$l['derniere'], 0, 5)];
+$jours = [];
+for ($n = 0; $n < 7; $n++) { $d = date('Y-m-d', strtotime("$lundi +$n day")); $jours[] = ['date' => $d, 'nb' => $par_jour[$d]['nb'] ?? 0, 'premiere' => $par_jour[$d]['premiere'] ?? null, 'derniere' => $par_jour[$d]['derniere'] ?? null]; }
+
+// Prochaine intervention urgente (a partir d'aujourd'hui).
+$st = db()->prepare(SELECT_INTERVENTION . " WHERE i.urgente = 1 AND i.date >= ? AND i.$pas_annulee ORDER BY i.date, i.heure_debut LIMIT 1");
+$st->execute([$aujourdhui]);
+$urgence = $st->fetch();
+
+json_out(200, ['ok' => true, 'role' => $user['role'], 'kpis' => $kpis, 'aujourdhui' => $jour, 'charge' => $charge, 'jours' => $jours,
+               'prochaine_urgence' => $urgence ? intervention_vers_front($urgence) : null]);
