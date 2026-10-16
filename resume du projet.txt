@@ -1,0 +1,19 @@
+Ses proches aidants (famille, voisin…). Ils sont reliés au bénéficiaire par une association qui précise le lien (fille, voisin…) et ce qu’ils ont le droit de voir. Un proche aidant peut avoir un compte et consulter le suivi de son proche, mais seulement ce qui est autorisé.
+Ses interventions, c’est-à-dire les visites planifiées chez lui. Chaque intervention relie un bénéficiaire, un intervenant, une date, une heure et un type (toilette, repas, ménage…). Le statut passe de planifiée à réalisée ou annulée. Le système empêche aussi de placer deux interventions en même temps pour un même intervenant.
+Les comptes rendus, que l’intervenant rédige après chaque intervention. Le coordinateur les valide.
+La facturation. Les interventions réalisées sont regroupées dans une facture adressée au bénéficiaire. Le tarif dépend du type d’intervention. La facture reçoit ensuite des paiements (espèces, banque ou opérateur mobile), et on suit le montant payé et le montant restant.
+Son compte utilisateur (optionnel), pour qu’il consulte son propre espace.
+
+Les intervenants (salariés, bénévoles, prestataires) voient leur planning, réalisent les interventions et rédigent les comptes rendus. Ils peuvent aussi avoir un compte.
+
+Les comptes et les rôles. Chaque compte a un seul rôle : administrateur, coordinateur, intervenant, responsable qualité, facturation, direction, maintenance, proche aidant ou bénéficiaire. Le rôle décide du menu et des pages accessibles. Seul l’administrateur crée les comptes. Il génère un mot de passe temporaire, que la personne doit changer à sa première connexion.
+
+Qui fait quoi :
+
+Le coordinateur gère les bénéficiaires, les intervenants et le planning.
+L’intervenant exécute et rédige les comptes rendus.
+La facturation crée les factures et enregistre les paiements.
+La direction consulte les tableaux de bord.
+Les proches aidants et les bénéficiaires consultent seulement leur espace.
+
+En gros : le bénéficiaire est au centre, les interventions le relient aux intervenants, et la facture découle des interventions réalisées.
