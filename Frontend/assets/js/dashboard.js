@@ -81,6 +81,15 @@ Shell.demarrer(function (contenu, user) {
       h += '</div><div class="jour-detail" id="jd"></div></section>';
     }
     contenu.innerHTML = h;
+    // Listes limitees : 2 interventions du jour et 3 intervenants visibles, le reste se fait defiler.
+    function limiter(ul, n) {
+      if (!ul || ul.children.length <= n) return;
+      var h2 = 0, gap = parseFloat(window.getComputedStyle(ul).rowGap || window.getComputedStyle(ul).gap) || 0;
+      for (var z = 0; z < n; z++) h2 += ul.children[z].offsetHeight + (z ? gap : 0);
+      ul.style.maxHeight = Math.ceil(h2 + 2) + 'px'; ul.className += ' defile-y';
+    }
+    limiter(contenu.querySelector('.grid-2 .agenda'), 2);
+    limiter(contenu.querySelector('.charge'), 3);
     var jd = document.getElementById('jd');
     if (jd && d.jours) {
       var montrer = function (i) {

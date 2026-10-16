@@ -36,7 +36,7 @@ Shell.demarrer(function (contenu, moi) {
         ini = ((ini[0] || '?').charAt(0) + (ini.length > 1 ? ini[ini.length - 1].charAt(0) : '')).toUpperCase();
         h += '<li class="urow' + (u.inactif ? ' off' : '') + '"><span class="uav">' + esc(ini) + '<i class="' + (u.inactif ? 'off' : 'on') + '" title="' + (u.inactif ? 'Désactivé' : 'Actif') + '"></i></span>' +
              '<div class="uinfo"><div class="u1"><b>' + esc(nom) + '</b> <span class="urole">' + esc(u.role) + '</span>' + (u.mdp_temporaire ? ' <span class="badge warn">Mot de passe temporaire</span>' : '') + (u.inactif ? ' <span class="badge grey">Désactivé</span>' : '') + '</div>' +
-             '<div class="u2">' + (nom !== u.identifiant ? esc(u.identifiant) + ' · ' : '') + 'Dernière connexion : ' + esc(u.derniere_connexion || 'jamais') + '</div></div>' +
+             '<div class="u2">' + (nom !== u.identifiant ? esc(u.identifiant) + ' · ' : '') + 'Dernière connexion : ' + esc(ilYA(u.derniere_connexion) || 'jamais') + '</div></div>' +
              '<div class="uact">' + btnIco('reinit', 'Réinitialiser le mot de passe', 'data-act="reset" data-id="' + u.id + '"') +
              (u.identifiant === moi.identifiant ? '' : btnIco(u.actif ? 'desactiver' : 'reactiver', u.actif ? 'Désactiver le compte' : 'Réactiver le compte', 'data-act="actif" data-id="' + u.id + '" data-actif="' + (u.actif ? 0 : 1) + '"')) + '</div></li>';
       }

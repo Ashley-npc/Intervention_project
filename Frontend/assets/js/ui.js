@@ -44,6 +44,16 @@ function param(nom) {
   return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
 }
 function dateFr(d) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); return m ? m[3] + '/' + m[2] + '/' + m[1] : ''; }
+// Duree ecoulee : "a l'instant", "il y a 5 min", "il y a 3 h", "il y a 4 jours"; au-dela de 7 jours : date complete.
+function ilYA(d) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(d || ''); if (!m) return '';
+  var t = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]), mn = Math.floor((Date.now() - t.getTime()) / 60000);
+  if (mn < 1) return "à l'instant";
+  if (mn < 60) return 'il y a ' + mn + ' min';
+  if (mn < 1440) return 'il y a ' + Math.floor(mn / 60) + ' h';
+  if (mn < 10080) { var j = Math.floor(mn / 1440); return 'il y a ' + j + (j > 1 ? ' jours' : ' jour'); }
+  return dateFr(d) + ' à ' + m[4] + ':' + m[5];
+}
 function heure(h) { return h ? String(h).slice(0, 5) : ''; }
 function age(d) {
   var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); if (!m) return '';

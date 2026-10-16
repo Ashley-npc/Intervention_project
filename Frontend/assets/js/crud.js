@@ -123,6 +123,13 @@
         }
         h += '</div></section>';
       }
+      if (!id && nom === 'beneficiaires' && moi && moi.role === 'coordinateur') {
+        h += '<section class="card"><header><h2>Dossier médical</h2><span class="badge grey">Confidentiel · facultatif</span></header><div class="form-grid">' +
+          '<div class="field"><label for="dm_niveau_autonomie">Niveau d\'autonomie</label><select id="dm_niveau_autonomie" name="dm_niveau_autonomie"><option value="">—</option><option value="autonome">Autonome</option><option value="partielle">Aide partielle</option><option value="dependant">Dépendant</option></select></div>';
+        var dm = [['allergies', 'Allergies'], ['pathologies', 'Pathologies'], ['traitements', 'Traitements'], ['observations', 'Observations (internes)']];
+        for (var q = 0; q < dm.length; q++) h += '<div class="field large"><label for="dm_' + dm[q][0] + '">' + dm[q][1] + '</label><textarea id="dm_' + dm[q][0] + '" name="dm_' + dm[q][0] + '" rows="2" maxlength="2000"></textarea></div>';
+        h += '</div></section>';
+      }
       contenu.innerHTML = h + '<div class="actions"><button class="btn" type="submit" id="ok">Enregistrer</button></div></form>';
       document.getElementById('f').addEventListener('submit', envoyer);
     }
@@ -130,11 +137,17 @@
       e.preventDefault();
       var corps = {}, champs = document.getElementById('f').elements, i, b = document.getElementById('ok');
       for (i = 0; i < champs.length; i++) if (champs[i].name && (id || champs[i].value !== '')) corps[champs[i].name] = champs[i].value;   // création : les champs vides sont omis
+      var dossier = {}, rempli = false;
+      for (var k0 in corps) if (k0.indexOf('dm_') === 0) { if (corps[k0] !== '') { dossier[k0.slice(3)] = corps[k0]; rempli = true; } delete corps[k0]; }
       var spans = document.querySelectorAll('.field-err'); for (i = 0; i < spans.length; i++) spans[i].textContent = '';
       document.getElementById('msg').hidden = true;
       b.disabled = true;
       appel(R.api + (id ? '?id=' + encodeURIComponent(id) : ''), { method: id ? 'PUT' : 'POST', body: JSON.stringify(corps) }).then(function (r) {
-        if (r.ok) { location.href = R.pages.fiche + '?id=' + (r.data.id || id); return; }
+        if (r.ok) {
+          var nid = r.data.id || id, ir = function () { location.href = R.pages.fiche + '?id=' + nid; };
+          if (!id && rempli) appel('dossier-medical.php?id_beneficiaire=' + encodeURIComponent(nid), { method: 'PUT', body: JSON.stringify(dossier) }).then(ir, ir); else ir();
+          return;
+        }
         b.disabled = false;
         var m = document.getElementById('msg'); m.textContent = r.data.message || 'Erreur.'; m.hidden = false;
         var er = r.data.erreurs || {};
@@ -146,8 +159,9 @@
     appel(R.api + '?id=' + encodeURIComponent(id)).then(function (r) { if (r.ok) dessiner(r.data.item); else erreurPage(r.data.message || 'Erreur.'); });
   }
 
-  Shell.demarrer(function (c) {
-    contenu = c;
+  var moi = null;
+  Shell.demarrer(function (c, u) {
+    contenu = c; moi = u;
     document.title = R.titre + ' · Suivi à domicile';
     if (vue === 'liste') liste(); else if (vue === 'fiche') fiche(); else formulaire();
   });

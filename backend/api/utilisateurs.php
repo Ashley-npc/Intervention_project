@@ -93,7 +93,12 @@ if ($methode === 'POST') {
         if ($nom === '' || mb_strlen($nom) > 60) $erreurs['nom'] = 'Nom obligatoire (60 caracteres maximum).';
         if ($prenom === '' || mb_strlen($prenom) > 60) $erreurs['prenom'] = 'Prenom obligatoire (60 caracteres maximum).';
     } else { $nom = $prenom = ''; }
-    if ($erreurs) json_out(422, ['ok' => false, 'message' => 'Certains champs sont à corriger.', 'erreurs' => $erreurs]);
+    if (!isset($erreurs['identifiant'])) {
+        $st = db()->prepare('SELECT 1 FROM utilisateur WHERE LOWER(identifiant) = ?');
+        $st->execute([$identifiant]);
+        if ($st->fetchColumn()) $erreurs['identifiant'] = 'Cet identifiant existe déjà.';
+    }
+    if ($erreurs) json_out(422, ['ok' => false, 'message' => isset($erreurs['identifiant']) && count($erreurs) === 1 ? $erreurs['identifiant'] : 'Certains champs sont à corriger.', 'erreurs' => $erreurs]);
 
     $mdp = mot_de_passe_temporaire();
     $pdo = db();

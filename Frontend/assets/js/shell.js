@@ -34,7 +34,7 @@ var Shell = (function () {
     for (var g = 0; g < ORDRE.length; g++) {
       var bloc = '';
       for (var i = 0; i < l.length; i++) if ((GROUPES[l[i][2]] || 'Activité') === ORDRE[g]) bloc += '<a href="' + FRONT + l[i][1] + '"' + (l[i][2] === courant ? ' aria-current="page"' : '') + '>' + ico('n_' + l[i][2].replace(/-/g, '_')) + l[i][0] + '</a>';
-      if (bloc) nav += (g > 0 ? '<span class="group sep"></span>' : '') + bloc;
+      if (bloc) nav += '<span class="group">' + ORDRE[g] + '</span>' + bloc;
     }
     document.body.innerHTML =
       '<div class="app"><aside class="sidebar"><div class="brand">Suivi à domicile<small>' + esc(NOMS[user.role] || user.role) + '</small></div>' +
