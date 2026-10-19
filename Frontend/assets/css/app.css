@@ -527,7 +527,8 @@ button.jour { font: inherit; color: inherit; background: var(--surface); cursor:
 /* liste des comptes : defilement */
 .ulist { max-height: min(460px, 65vh); overflow-y: auto; padding-right: 6px; -webkit-overflow-scrolling: touch; }
 
-/* Lignes d'agenda : statut et bouton sur la meme ligne, centres verticalement, alignes a droite */
-.agenda .cote { flex-direction: row; align-items: center; justify-content: flex-end; gap: 10px; }
-.agenda .tags { flex-wrap: nowrap; }
-@media (max-width: 820px) { .agenda li .cote { grid-column: 2; justify-content: flex-start; flex-wrap: wrap; } .agenda li.sans-heure .cote { grid-column: auto; justify-content: flex-end; } }
+/* Bouton d'action des lignes d'agenda : plus large (horizontalement) */
+.agenda .cote .btn { min-width: 56px; }
+
+/* Bouton d'action des lignes d'agenda : plus large horizontalement */
+.agenda .cote .btn.ic { width: 60px; height: 36px; }
