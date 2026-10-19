@@ -49,7 +49,20 @@ if ($user['role'] === 'facturation') {
     ], 'dernieres' => $st->fetchAll()]);
 }
 
-// Coordinateur, administrateur, qualité, direction : vue d'ensemble.
+// Administrateur : uniquement la gestion des comptes (pas de donnees metier : c'est le role du coordinateur).
+if ($user['role'] === 'administrateur') {
+    $par_role = db()->query('SELECT r.libelle AS role, COUNT(*) AS nb FROM utilisateur u JOIN role r ON r.id_role = u.id_role WHERE u.actif = 1 GROUP BY r.libelle ORDER BY nb DESC, r.libelle')->fetchAll();
+    $actions = db()->query('SELECT j.date_heure, j.action, j.entite_concernee, j.detail, u.identifiant FROM journal_audit j LEFT JOIN utilisateur u ON u.id_utilisateur = j.id_utilisateur ORDER BY j.date_heure DESC LIMIT 6')->fetchAll();
+    json_out(200, ['ok' => true, 'role' => 'administrateur', 'kpis' => [
+        'actifs'         => un('SELECT COUNT(*) FROM utilisateur WHERE actif = 1'),
+        'desactives'     => un('SELECT COUNT(*) FROM utilisateur WHERE actif = 0'),
+        'mdp_temporaire' => un('SELECT COUNT(*) FROM utilisateur WHERE actif = 1 AND doit_changer_mot_de_passe = 1'),
+        'jamais_connectes' => un('SELECT COUNT(*) FROM utilisateur WHERE actif = 1 AND derniere_connexion IS NULL'),
+        'connectes_7j'   => un('SELECT COUNT(*) FROM utilisateur WHERE derniere_connexion >= ?', [date('Y-m-d H:i:s', strtotime('-7 days'))]),
+    ], 'par_role' => $par_role, 'actions' => $actions]);
+}
+
+// Coordinateur, qualité, direction : vue d'ensemble.
 $st = db()->prepare(SELECT_INTERVENTION . " WHERE i.date = ? AND i.$pas_annulee ORDER BY i.heure_debut");
 $st->execute([$aujourdhui]);
 $jour = array_map('intervention_vers_front', $st->fetchAll());
@@ -85,7 +98,6 @@ $kpis = [
     })(),
     'urgentes'      => un("SELECT COUNT(*) FROM intervention WHERE urgente = 1 AND date >= ? AND $pas_annulee", [$aujourdhui]),
 ];
-if ($user['role'] === 'administrateur') $kpis['utilisateurs'] = un('SELECT COUNT(*) FROM utilisateur WHERE actif = 1');
 // Planning de la semaine : nombre d'interventions par jour (lundi -> dimanche).
 $st = db()->prepare("SELECT date, COUNT(*) AS nb, MIN(heure_debut) AS premiere, MAX(heure_fin) AS derniere FROM intervention WHERE date BETWEEN ? AND ? AND $pas_annulee GROUP BY date");
 $st->execute([$lundi, $dimanche]);

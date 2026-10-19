@@ -1,11 +1,11 @@
 <?php
 // Absences des intervenants (conge, formation, arret maladie...) et des beneficiaires (hospitalisation, voyage, refus...).
 //   GET  absences.php[?du=&au=&cible=intervenant|beneficiaire&id_intervenant=&id_beneficiaire=&annulees=1]   liste (+ interventions impactees)
-//   GET  absences.php?etat=1[&du=&au=]                    etat des absences et taux d'absenteisme (coordinateur, administrateur)
-//   GET  absences.php?remplacants=<id_intervention>        remplacants possibles (coordinateur, administrateur)
+//   GET  absences.php?etat=1[&du=&au=]                    etat des absences et taux d'absenteisme (coordinateur)
+//   GET  absences.php?remplacants=<id_intervention>        remplacants possibles (coordinateur)
 //   POST absences.php                                      declarer une absence
 //   PUT  absences.php?id=3                                 modifier, ou {"annuler": true}
-// Coordinateur et administrateur : tout. Intervenant : SES absences. Beneficiaire : SES absences.
+// Coordinateur : tout. Intervenant : SES absences. Beneficiaire : SES absences.
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/journal.php';
@@ -14,8 +14,8 @@ require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 require __DIR__ . '/../includes/disponibilites.php';
 
-$user = exiger_connexion(['coordinateur', 'administrateur', 'intervenant', 'beneficiaire']);
-$gestion = in_array($user['role'], ['coordinateur', 'administrateur'], true);
+$user = exiger_connexion(['coordinateur', 'intervenant', 'beneficiaire']);
+$gestion = $user['role'] === 'coordinateur';
 $mon_intervenant = $user['role'] === 'intervenant' ? intervenant_du_compte($user) : null;
 $mon_beneficiaire = null;
 if ($user['role'] === 'beneficiaire') {

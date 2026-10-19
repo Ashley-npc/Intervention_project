@@ -10,7 +10,7 @@ require __DIR__ . '/../includes/notifications.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 
-$user = exiger_connexion(['coordinateur', 'administrateur', 'intervenant']);
+$user = exiger_connexion(['coordinateur', 'intervenant']);
 $est_intervenant = $user['role'] === 'intervenant';
 $mon_id = null;
 if ($est_intervenant) {

@@ -1,12 +1,12 @@
 <?php
-// Suivi de la facturation (service facturation, administrateur) :
+// Suivi de la facturation (service facturation) :
 //   GET a-facturer.php  ->  { a_facturer: [...], non_payees: [...] }
 //   a_facturer : bénéficiaires ayant des interventions réalisées et validées, pas encore facturées (regroupées par bénéficiaire)
 //   non_payees : factures qui ne sont pas totalement payées (avec le reste à payer et un indicateur de retard : plus de 30 jours)
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 
-exiger_connexion(['facturation', 'administrateur']);
+exiger_connexion(['facturation']);
 exiger_methode('GET');
 
 $st = db()->query("SELECT b.id_beneficiaire AS id, b.nom, b.prenom, COUNT(*) AS nb, MIN(i.date) AS premiere, MAX(i.date) AS derniere

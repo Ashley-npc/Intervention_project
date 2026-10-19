@@ -1,11 +1,11 @@
 <?php
-// Proches aidants (coordinateur, administrateur). Même contrat que beneficiaires.php / intervenants.php.
+// Proches aidants (coordinateur). Même contrat que beneficiaires.php / intervenants.php.
 //   GET aidants.php[?q=&tous=1] | GET aidants.php?id=3 (+ bénéficiaires liés) | POST | PUT ?id= (inactif:true pour désactiver)
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/validation.php';
 
-exiger_connexion(['coordinateur', 'administrateur']);
+exiger_connexion(['coordinateur']);
 $REGLES = [
     'nom'                      => ['libelle' => 'Le nom',     'max' => 100, 'requis' => true],
     'prenom'                   => ['libelle' => 'Le prénom',  'max' => 100, 'requis' => true],

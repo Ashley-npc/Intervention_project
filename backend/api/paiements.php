@@ -8,7 +8,7 @@ require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/facturation.php';
 
 exiger_methode('POST');
-exiger_connexion(['facturation', 'administrateur']);
+exiger_connexion(['facturation']);
 $d = corps_json();
 [$v, $erreurs] = valider($d, [
     'date_paiement' => ['libelle' => 'La date', 'type' => 'date', 'requis' => true, 'pas_futur' => true],

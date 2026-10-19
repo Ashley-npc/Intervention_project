@@ -1,5 +1,5 @@
 <?php
-// Factures (service facturation, administrateur ; direction en lecture seule).
+// Factures (service facturation ; direction en lecture seule).
 //   GET  factures.php?statut=impayee&q=dupont       liste (avec montant payé / restant)
 //   GET  factures.php?id=3                          une facture + ses interventions + ses paiements
 //   POST factures.php  {id_beneficiaire, du, au, apercu?}   génère la facture des interventions validées de la période
@@ -11,7 +11,7 @@ require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/facturation.php';
 
-$user = exiger_connexion(['facturation', 'administrateur', 'direction']);
+$user = exiger_connexion(['facturation', 'direction']);
 $methode = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($methode !== 'GET' && $user['role'] === 'direction') json_out(403, ['ok' => false, 'message' => 'Accès refusé.']);

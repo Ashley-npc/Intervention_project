@@ -1,5 +1,5 @@
 <?php
-// Fiches des medecins prescripteurs (coordinateur, administrateur). Le medecin est un contact EXTERNE : il n'a pas de compte.
+// Fiches des medecins prescripteurs (coordinateur). Le medecin est un contact EXTERNE : il n'a pas de compte.
 // Il est relie aux interventions qu'il prescrit (intervention.id_medecin).
 //   GET  medecins.php                 liste (+ nombre d'interventions prescrites)
 //   POST medecins.php                 creation {nom, prenom?, specialite?, telephone?, courriel?}
@@ -9,7 +9,7 @@ require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/journal.php';
 
-exiger_connexion(['coordinateur', 'administrateur']);
+exiger_connexion(['coordinateur']);
 $REGLES = [
     'nom'        => ['libelle' => 'Le nom',        'max' => 100, 'requis' => true],
     'prenom'     => ['libelle' => 'Le prénom',     'max' => 100],

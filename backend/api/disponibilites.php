@@ -1,6 +1,6 @@
 <?php
 // Disponibilites hebdomadaires d'un intervenant (semaine type : des creneaux par jour).
-//   GET disponibilites.php[?id_intervenant=3]   creneaux  (l'intervenant voit les siens ; le coordinateur/administrateur choisit)
+//   GET disponibilites.php[?id_intervenant=3]   creneaux  (l'intervenant voit les siens ; le coordinateur choisit)
 //   PUT disponibilites.php[?id_intervenant=3]   {creneaux: [{jour: 1, debut: "08:00", fin: "12:00"}, ...]}  remplace toute la semaine
 // Table Disponibilite existante : jour_ou_date = 'lundi'..'dimanche', type = 'disponible'. Sans aucun creneau, l'intervenant n'est soumis a aucune contrainte. Avec des creneaux, une intervention doit entrer dans l'un d'eux.
 require __DIR__ . '/../includes/db.php';
@@ -11,7 +11,7 @@ require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 require __DIR__ . '/../includes/disponibilites.php';
 
-$user = exiger_connexion(['coordinateur', 'administrateur', 'intervenant']);
+$user = exiger_connexion(['coordinateur', 'intervenant']);
 if ($user['role'] === 'intervenant') {
     $id_v = intervenant_du_compte($user);
     if ($id_v === null) json_out(403, ['ok' => false, 'message' => "Ce compte n'est lié à aucune fiche intervenant."]);

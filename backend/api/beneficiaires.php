@@ -1,5 +1,5 @@
 <?php
-// API des bénéficiaires (coordinateur et administrateur).
+// API des bénéficiaires (coordinateur).
 //   GET  beneficiaires.php?q=dupont&tous=1   liste (tous=1 : inclut les archivés)
 //   GET  beneficiaires.php?id=3              une fiche + ses interventions
 //   POST beneficiaires.php                   création            corps : champs du bénéficiaire
@@ -10,7 +10,7 @@ require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/requetes.php';
 
-exiger_connexion(['coordinateur', 'administrateur']);
+exiger_connexion(['coordinateur']);
 
 $REGLES = [
     'nom'                 => ['libelle' => 'Le nom',                 'max' => 100, 'requis' => true],

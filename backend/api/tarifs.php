@@ -1,5 +1,5 @@
 <?php
-// Tarifs horaires par type d'intervention (facturation, administrateur ; direction en lecture).
+// Tarifs horaires par type d'intervention (facturation ; direction en lecture).
 //   GET  tarifs.php   liste      POST tarifs.php  {type_intervention, montant_horaire, date_debut_validite}
 // Un nouveau tarif clôture automatiquement l'ancien du même type (la veille de sa date de début).
 require __DIR__ . '/../includes/db.php';
@@ -8,7 +8,7 @@ require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/facturation.php';
 
-$user = exiger_connexion(['facturation', 'administrateur', 'direction']);
+$user = exiger_connexion(['facturation', 'direction']);
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $l = db()->query('SELECT id_tarif AS id, type_intervention, montant_horaire, date_debut_validite, date_fin_validite FROM tarif ORDER BY type_intervention, date_debut_validite DESC')->fetchAll();
     foreach ($l as &$t) $t['montant_horaire'] = (float)$t['montant_horaire'];

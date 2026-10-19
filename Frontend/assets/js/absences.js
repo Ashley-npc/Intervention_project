@@ -1,8 +1,8 @@
 // Absences : intervenants (conge, formation, arret maladie...) et beneficiaires (hospitalisation, voyage, refus...).
-// Coordinateur/administrateur : tout, remplacants, etat. Intervenant / beneficiaire : ses propres absences.
+// Coordinateur : tout, remplacants, etat. Intervenant / beneficiaire : ses propres absences.
 Shell.demarrer(function (contenu, user) {
   document.title = 'Absences · Suivi à domicile';
-  var gestion = user.role === 'coordinateur' || user.role === 'administrateur', soi = !gestion;
+  var gestion = user.role === 'coordinateur', soi = !gestion;
   var donnees = null, edition = 0, ouverte = 0;
   var titre = soi ? 'Mes absences' : 'Absences';
 

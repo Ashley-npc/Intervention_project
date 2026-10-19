@@ -1,5 +1,5 @@
 <?php
-// Liens bénéficiaire <-> proche aidant et ce que l'aidant a le droit de voir (coordinateur, administrateur).
+// Liens bénéficiaire <-> proche aidant et ce que l'aidant a le droit de voir (coordinateur).
 //   GET  liens-aidants.php?id_beneficiaire=3    liens d'un bénéficiaire (+ aidants disponibles)
 //   POST liens-aidants.php {id_beneficiaire, id_aidant, lien_parente?, planning: bool, etat: bool}   crée ou met à jour le lien
 //   POST liens-aidants.php {id_beneficiaire, id_aidant, retirer: true}                               supprime le lien (pas les personnes)
@@ -8,7 +8,7 @@ require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/validation.php';
 
-exiger_connexion(['coordinateur', 'administrateur']);
+exiger_connexion(['coordinateur']);
 $methode = $_SERVER['REQUEST_METHOD'];
 
 if ($methode === 'GET') {

@@ -1,8 +1,8 @@
 <?php
 // Incidents survenus pendant une intervention.
 //   GET  incidents.php?traite=0|1      liste (+ interventions recentes pour le formulaire de declaration)
-//   POST incidents.php                 {id_intervention, gravite, description}   intervenant (les siennes), coordinateur, administrateur
-//   PUT  incidents.php?id=3            {"traite": true|false}                    responsable qualite, coordinateur, administrateur
+//   POST incidents.php                 {id_intervention, gravite, description}   intervenant (les siennes), coordinateur
+//   PUT  incidents.php?id=3            {"traite": true|false}                    responsable qualite, coordinateur
 // Lecture : tous ces roles + direction (l'intervenant ne voit que les incidents de ses interventions).
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
@@ -12,7 +12,7 @@ require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/notifications.php';
 
 const GRAVITES = ['mineur', 'important', 'urgent'];
-$user = exiger_connexion(['administrateur', 'coordinateur', 'responsable_qualite', 'direction', 'intervenant']);
+$user = exiger_connexion(['coordinateur', 'responsable_qualite', 'direction', 'intervenant']);
 $methode = $_SERVER['REQUEST_METHOD'];
 $mon_id = $user['role'] === 'intervenant' ? intervenant_du_compte($user) : null;
 if ($user['role'] === 'intervenant' && $mon_id === null) json_out(403, ['ok' => false, 'message' => "Votre compte n'est relié à aucune fiche intervenant."]);
@@ -30,7 +30,7 @@ if ($methode === 'GET') {
     $items = $st->fetchAll();
     foreach ($items as &$x) { $x['id'] = (int)$x['id']; $x['traite'] = (bool)$x['traite']; $x['id_intervention'] = (int)$x['id_intervention']; }
     unset($x);
-    $peut_declarer = in_array($user['role'], ['intervenant', 'coordinateur', 'administrateur'], true);
+    $peut_declarer = in_array($user['role'], ['intervenant', 'coordinateur'], true);
     $options = [];
     if ($peut_declarer) {
         $q = "SELECT i.id_intervention AS id, i.date, i.heure_debut, b.prenom, b.nom FROM intervention i JOIN beneficiaire b ON b.id_beneficiaire = i.id_beneficiaire
@@ -39,11 +39,11 @@ if ($methode === 'GET') {
         $o = db()->prepare($q); $o->execute($pp); $options = $o->fetchAll();
     }
     json_out(200, ['ok' => true, 'items' => $items, 'interventions' => $options, 'gravites' => GRAVITES,
-                   'peut_declarer' => $peut_declarer, 'peut_traiter' => in_array($user['role'], ['responsable_qualite', 'coordinateur', 'administrateur'], true)]);
+                   'peut_declarer' => $peut_declarer, 'peut_traiter' => in_array($user['role'], ['responsable_qualite', 'coordinateur'], true)]);
 }
 
 if ($methode === 'POST') {
-    if (!in_array($user['role'], ['intervenant', 'coordinateur', 'administrateur'], true)) json_out(403, ['ok' => false, 'message' => 'Accès refusé.']);
+    if (!in_array($user['role'], ['intervenant', 'coordinateur'], true)) json_out(403, ['ok' => false, 'message' => 'Accès refusé.']);
     $d = corps_json();
     $erreurs = [];
     $id_i = (int)($d['id_intervention'] ?? 0);
@@ -67,7 +67,7 @@ if ($methode === 'POST') {
 }
 
 if ($methode === 'PUT') {
-    if (!in_array($user['role'], ['responsable_qualite', 'coordinateur', 'administrateur'], true)) json_out(403, ['ok' => false, 'message' => 'Accès refusé.']);
+    if (!in_array($user['role'], ['responsable_qualite', 'coordinateur'], true)) json_out(403, ['ok' => false, 'message' => 'Accès refusé.']);
     $id = (int)($_GET['id'] ?? 0);
     $d = corps_json();
     if ($id <= 0 || !array_key_exists('traite', $d)) json_out(400, ['ok' => false, 'message' => 'Requête invalide.']);

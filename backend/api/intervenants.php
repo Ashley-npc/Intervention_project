@@ -1,5 +1,5 @@
 <?php
-// API des intervenants (coordinateur et administrateur).
+// API des intervenants (coordinateur).
 //   GET  intervenants.php?q=rakoto&tous=1   liste (tous=1 : inclut les désactivés)
 //   GET  intervenants.php?id=2              une fiche + ses interventions
 //   POST intervenants.php                   création
@@ -10,7 +10,7 @@ require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/requetes.php';
 
-exiger_connexion(['coordinateur', 'administrateur']);
+exiger_connexion(['coordinateur']);
 
 $REGLES = [
     'nom'                         => ['libelle' => 'Le nom',                  'max' => 100, 'requis' => true],

@@ -4,7 +4,7 @@
 //   GET  interventions.php?id=4                                                                  une intervention (+ bénéficiaire, compte rendu)
 //   POST interventions.php                                                                       création (vérifie les chevauchements)
 //   PUT  interventions.php?id=4                                                                  modification / annulation (interdite si validée)
-// Coordinateur et administrateur : tout. Intervenant : lecture de SES interventions uniquement.
+// Coordinateur : tout. Intervenant : lecture de SES interventions uniquement.
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/journal.php';
@@ -13,7 +13,7 @@ require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 require __DIR__ . '/../includes/disponibilites.php';
 
-$user = exiger_connexion(['coordinateur', 'administrateur', 'intervenant']);
+$user = exiger_connexion(['coordinateur', 'intervenant']);
 $est_intervenant = $user['role'] === 'intervenant';
 $mon_id = null;
 if ($est_intervenant) {

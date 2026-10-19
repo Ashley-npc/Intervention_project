@@ -1,7 +1,7 @@
 // Tableau de bord réel : coordinateur, administrateur, intervenant, qualité, direction (chiffres calculés par api/dashboard.php).
 Shell.demarrer(function (contenu, user) {
   document.title = 'Tableau de bord · Suivi à domicile';
-  var gestion = user.role === 'coordinateur' || user.role === 'administrateur';
+  var gestion = user.role === 'coordinateur';
   appel('dashboard.php').then(function (r) {
     if (!r.ok) { Shell.erreur(contenu, r.data.message || 'Erreur.'); return; }
     var d = r.data, h = '';
@@ -30,6 +30,17 @@ Shell.demarrer(function (contenu, user) {
       else { var cf = ''; for (var f = 0; f < d.dernieres.length; f++) { var fa = d.dernieres[f]; cf += factureCarte({ id: fa.id, numero: fa.numero, benef: fa.prenom + ' ' + fa.nom, statut: fa.statut, total: fa.montant_total, restant: Math.max(0, fa.montant_total - fa.paye), date: fa.date_emission }); } h += '<div class="rail une">' + cf + '</div>'; }
       h += '</section><section class="card"><header><h2>À surveiller</h2></header><ul class="alerts">' + alerte(k.en_retard, 'Factures en retard', 'Non payées depuis plus de 30 jours.', 'Aucun retard de paiement.', 'facturation/a-facturer.html?onglet=payer') +
            alerte(k.a_facturer, 'Interventions à facturer', 'Validées, pas encore facturées.', 'Tout est facturé.', 'facturation/a-facturer.html') + '</ul></section></div>';
+    } else if (user.role === 'administrateur') {
+      var ka = d.kpis, ligne = '', NOMS_ROLES = { administrateur: 'Administrateur', coordinateur: 'Coordinateur', intervenant: 'Intervenant', beneficiaire: 'Bénéficiaire', proche_aidant: 'Proche aidant', responsable_qualite: 'Responsable qualité', facturation: 'Facturation', direction: 'Direction', maintenance: 'Maintenance', medecin: 'Médecin' };
+      h = '<div class="page-head"><div><h1>Administration</h1><p>' + dateLongue(aujourdhui()) + '</p></div><a class="btn" href="' + FRONT + 'admin/utilisateurs.html">+ Créer un compte</a></div>' +
+          '<p class="surtitre">Comptes</p><section class="kpis">' + kpi(ka.actifs, 'Comptes actifs', 'admin/utilisateurs.html') + kpi(ka.desactives, 'Comptes désactivés', 'admin/utilisateurs.html') +
+          kpi(ka.connectes_7j, 'Connectés ces 7 jours', 'admin/utilisateurs.html') + kpi(ka.mdp_temporaire, 'Mot de passe temporaire', 'admin/utilisateurs.html') + '</section>' +
+          '<div class="grid-2"><section class="card"><header><h2>Comptes par rôle</h2><span class="muted">Actifs</span></header><ul class="alerts">';
+      for (var q = 0; q < d.par_role.length; q++) ligne += '<li><span class="badge">' + d.par_role[q].nb + '</span><div><b>' + esc(NOMS_ROLES[d.par_role[q].role] || d.par_role[q].role) + '</b></div></li>';
+      h += ligne + '</ul></section><section class="card"><header><h2>Dernières actions</h2><a class="link" href="' + FRONT + 'admin/journal.html">Journal</a></header>';
+      if (!d.actions.length) h += '<p class="empty">Aucune action enregistrée.</p>';
+      else { h += '<ul class="alerts">'; for (q = 0; q < d.actions.length; q++) { var ac = d.actions[q]; h += '<li><div><b>' + esc(ac.action) + ' · ' + esc(ac.entite_concernee || '') + '</b><span>' + esc(ac.identifiant || '—') + ' · ' + esc(dateFr(ac.date_heure)) + ' ' + esc(String(ac.date_heure).slice(11, 16)) + (ac.detail ? ' · ' + esc(ac.detail) : '') + '</span></div></li>'; } h += '</ul>'; }
+      h += '</section></div>' + (ka.jamais_connectes ? '<p class="muted">' + ka.jamais_connectes + ' compte(s) actif(s) ne se sont encore jamais connectés.</p>' : '');
     } else if (user.role === 'intervenant') {
       if (!d.lie) { contenu.innerHTML = '<div class="page-head"><div><h1>Bonjour</h1></div></div><p class="msg-err">Votre compte n\'est lié à aucune fiche intervenant. Demandez à l\'administrateur.</p>'; return; }
       h = '<div class="page-head"><div><h1>Bonjour ' + esc(d.prenom) + '</h1><p>' + dateLongue(aujourdhui()) + '</p></div></div>' +
