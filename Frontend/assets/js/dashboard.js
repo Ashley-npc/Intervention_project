@@ -53,7 +53,7 @@ Shell.demarrer(function (contenu, user) {
       }
       var u = d.prochaine_urgence;
       h += '<section class="card surv"><div class="pastilles">' + pastille(k.sans_cr, 'Comptes rendus manquants', gestion ? 'interventions/comptes-rendus.html?etat=sans' : '', true) +
-           pastille(k.a_valider, 'À valider', gestion ? 'interventions/comptes-rendus.html' : '', false) + pastille(k.conflits, "Conflit d'horaire", '', true) +
+           pastille(k.a_valider, 'À valider', gestion ? 'interventions/comptes-rendus.html' : '', false) + pastille(k.conflits, "Conflit d'horaire", '', true) + pastille(k.a_reaffecter, 'À réaffecter (absence)', gestion ? 'absences/liste.html' : '', true) +
            pastille(k.urgentes, 'Urgence à venir', gestion ? 'interventions/planning.html' : '', true, u ? esc(u.beneficiaire_prenom + ' ' + u.beneficiaire_nom) + ' · ' + dateFr(u.date).slice(0, 5) + ' ' + u.heure_debut : '') + '</div></section>';
       // 3) interventions du jour + charge des intervenants
       h += '<div class="grid-2"><section class="card"><header><div><h2>Interventions du jour</h2><p class="soustitre">' + (d.aujourdhui.length ? d.aujourdhui.length + ' visite' + (d.aujourdhui.length > 1 ? 's planifiées' : ' planifiée') : "Rien de prévu aujourd'hui") + '</p></div>' +

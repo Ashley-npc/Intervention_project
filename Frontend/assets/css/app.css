@@ -532,3 +532,25 @@ button.jour { font: inherit; color: inherit; background: var(--surface); cursor:
 
 /* Bouton d'action des lignes d'agenda : plus large horizontalement */
 .agenda .cote .btn.ic { width: 60px; height: 36px; }
+
+@media (min-width: 821px) { .pastilles { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); } }
+
+/* Absences et disponibilites */
+.msg-ok { background: var(--soft); border-left: 3px solid var(--brand); padding: 10px 14px; border-radius: 6px; margin: 0 0 14px; }
+.filtres { display: inline-flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+.filtres select { width: auto; }
+.check { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.pers .acts { display: flex; gap: 6px; flex: none; }
+button.bt { cursor: pointer; border: 1px solid transparent; font: inherit; font-size: 12px; }
+.rempl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.rempl select { width: auto; max-width: 260px; }
+.semaine { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.jsem { background: var(--soft); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.jsem-t { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.jsem-l { display: flex; flex-direction: column; gap: 6px; }
+.cren { display: flex; align-items: center; gap: 6px; }
+.cren input { width: auto; flex: 1; min-width: 0; }
+.cren .btn.ic { width: 32px; height: 32px; flex: none; }
+.msg-ok[hidden] { display: none; }
+@media (max-width: 480px) { .rail { grid-template-columns: minmax(0, 1fr) !important; } .filtres { width: 100%; justify-content: space-between; } }
+.page-head select { width: auto; min-width: 200px; }

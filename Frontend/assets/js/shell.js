@@ -7,11 +7,12 @@ var Shell = (function () {
     if (role === 'coordinateur' || role === 'administrateur') {
       l.push(['Planning', 'interventions/planning.html', 'planning'], ['Bénéficiaires', 'beneficiaires/liste.html', 'beneficiaires'],
              ['Intervenants', 'intervenants/liste.html', 'intervenants'], ['Comptes rendus', 'interventions/comptes-rendus.html', 'comptes-rendus']);
-      l.push(['Proches aidants', 'aidants/liste.html', 'aidants'], ['Médecins', 'medecins/liste.html', 'medecins']);
+      l.push(['Proches aidants', 'aidants/liste.html', 'aidants'], ['Médecins', 'medecins/liste.html', 'medecins'], ['Absences', 'absences/liste.html', 'absences'], ['Disponibilités', 'absences/disponibilites.html', 'disponibilites']);
       if (role === 'administrateur') l.push(['Facturation', 'facturation/factures.html', 'factures'], ['Utilisateurs', 'admin/utilisateurs.html', 'utilisateurs']);
     } else if (role === 'facturation') {
       l.push(['Factures', 'facturation/factures.html', 'factures'], ['Nouvelle facture', 'facturation/nouvelle.html', 'nouvelle'], ['Tarifs', 'facturation/tarifs.html', 'tarifs']);
-    } else if (role === 'intervenant') l.push(['Mon planning', 'espace-intervenant/planning.html', 'planning']);
+    } else if (role === 'intervenant') l.push(['Mon planning', 'espace-intervenant/planning.html', 'planning'], ['Mes absences', 'absences/liste.html', 'absences'], ['Mes disponibilités', 'absences/disponibilites.html', 'disponibilites']);
+    else if (role === 'beneficiaire') l.push(['Mes absences', 'absences/liste.html', 'absences']);
     if (role !== 'beneficiaire' && role !== 'proche_aidant' && role !== 'facturation' && role !== 'maintenance') l.push(['Incidents', 'interventions/incidents.html', 'incidents']);
     if (role === 'administrateur' || role === 'direction' || role === 'responsable_qualite') l.push(['Journal', 'admin/journal.html', 'journal']);
     return l;
@@ -29,7 +30,7 @@ var Shell = (function () {
   }
   function coque(user) {
     var courant = document.body.getAttribute('data-menu') || document.body.getAttribute('data-ressource') || '', l = liens(user.role), nav = '';
-    var GROUPES = { accueil: 'Activité', planning: 'Activité', 'comptes-rendus': 'Activité', incidents: 'Activité', beneficiaires: 'Personnes', intervenants: 'Personnes', aidants: 'Personnes', medecins: 'Personnes',
+    var GROUPES = { accueil: 'Activité', planning: 'Activité', 'comptes-rendus': 'Activité', incidents: 'Activité', beneficiaires: 'Personnes', intervenants: 'Personnes', aidants: 'Personnes', medecins: 'Personnes', disponibilites: 'Personnes',
                     factures: 'Gestion', nouvelle: 'Gestion', tarifs: 'Gestion', utilisateurs: 'Système', journal: 'Système' }, ORDRE = ['Activité', 'Personnes', 'Gestion', 'Système'];
     for (var g = 0; g < ORDRE.length; g++) {
       var bloc = '';

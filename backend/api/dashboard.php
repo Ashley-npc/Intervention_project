@@ -78,6 +78,11 @@ $kpis = [
     'sans_cr'       => un("SELECT COUNT(*) FROM intervention i LEFT JOIN compte_rendu c ON c.id_intervention = i.id_intervention
                            WHERE " . SQL_TERMINEE . " AND i.$pas_annulee AND c.id_compte_rendu IS NULL", params_terminee()),
     'conflits'      => $conflits,
+    // Interventions a venir dont l'intervenant est absent ce jour-la : a reaffecter (0 tant que la table absence n'existe pas).
+    'a_reaffecter'  => (function () use ($aujourdhui) {
+        try { return un("SELECT COUNT(*) FROM intervention i WHERE i.date >= ? AND i.statut = 'planifiee' AND EXISTS (SELECT 1 FROM absence a WHERE a.id_intervenant = i.id_intervenant AND a.annulee = 0 AND a.date_debut <= i.date AND a.date_fin >= i.date)", [$aujourdhui]); }
+        catch (Throwable $e) { return 0; }
+    })(),
     'urgentes'      => un("SELECT COUNT(*) FROM intervention WHERE urgente = 1 AND date >= ? AND $pas_annulee", [$aujourdhui]),
 ];
 if ($user['role'] === 'administrateur') $kpis['utilisateurs'] = un('SELECT COUNT(*) FROM utilisateur WHERE actif = 1');

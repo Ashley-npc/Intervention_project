@@ -11,6 +11,7 @@ require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/notifications.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
+require __DIR__ . '/../includes/disponibilites.php';
 
 $user = exiger_connexion(['coordinateur', 'administrateur', 'intervenant']);
 $est_intervenant = $user['role'] === 'intervenant';
@@ -143,6 +144,11 @@ if ($methode === 'POST' || $methode === 'PUT') {
     if (!est_annulee($statut)) {
         $c = chevauchements($date, $debut, $fin, $id_b, $id_v, $id);
         if ($c) reponse_conflit($c);
+        // Absences et disponibilites (CDC 5.4 : planifiable seulement si l'intervenant et le beneficiaire sont disponibles). L'urgence passe outre les disponibilites habituelles, pas une absence declaree.
+        $urgente = array_key_exists('urgente', $v) ? (bool)$v['urgente'] : (bool)($actuelle['urgente'] ?? false);
+        $verif = !$actuelle || $date !== $actuelle['date'] || $debut !== substr($actuelle['heure_debut'], 0, 8) || $id_v !== (int)$actuelle['id_intervenant'] || $id_b !== (int)$actuelle['id_beneficiaire'] || $fin !== substr($actuelle['heure_fin'], 0, 8);
+        if ($verif && ($c = controle_planification($date, $debut, $fin, $id_b, $id_v, $urgente)))
+            json_out(409, ['ok' => false, 'message' => 'Planification impossible : ' . implode(' ', $c), 'conflits' => $c]);
     }
     $v['date_modification'] = date('Y-m-d');
     if ($creation) {
@@ -158,7 +164,12 @@ if ($methode === 'POST' || $methode === 'PUT') {
     }
     $sets = implode(', ', array_map(function ($c) { return "$c = ?"; }, array_keys($v)));
     db()->prepare("UPDATE intervention SET $sets WHERE id_intervention = ?")->execute(array_merge(array_values($v), [$id]));
-    journaliser(est_annulee($statut) ? 'annulation' : 'modification', 'intervention', 'intervention ' . $id);
+    $reaffectee = $actuelle && $id_v !== (int)$actuelle['id_intervenant'];
+    journaliser(est_annulee($statut) ? 'annulation' : ($reaffectee ? 'reaffectation' : 'modification'), 'intervention', 'intervention ' . $id . ($reaffectee ? ' : intervenant ' . $actuelle['id_intervenant'] . ' -> ' . $id_v : ''));
+    if ($reaffectee) {   // l'ancien intervenant est prevenu qu'il n'est plus concerne
+        $st = db()->prepare('SELECT id_utilisateur FROM intervenant WHERE id_intervenant = ?'); $st->execute([(int)$actuelle['id_intervenant']]);
+        if ($ancien = $st->fetchColumn()) notifier([(int)$ancien], 'Intervention réaffectée à un autre intervenant : ' . resume_intervention($id), $id);
+    }
     notifier(destinataires_intervention($id), (est_annulee($statut) ? 'Intervention annulée : ' : 'Intervention modifiée : ') . resume_intervention($id), $id, !empty($v['urgente']));
     json_out(200, ['ok' => true, 'id' => $id]);
 }

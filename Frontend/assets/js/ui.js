@@ -27,6 +27,8 @@ var ICONES = {
   n_tarifs: '<path d="M3 12l9-9h8v8l-9 9z"/><circle cx="15.5" cy="8.5" r="1"/>',
   n_utilisateurs: '<rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   n_incidents: '<path d="M12 4l9 16H3zM12 10v4M12 17v.5"/>',
+  n_absences: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M10 13.5l4 4M14 13.5l-4 4"/>',
+  n_disponibilites: '<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>',
   n_journal: '<path d="M7 3h10v18H7zM10 8h4M10 12h4M10 16h4"/>',
   n_notifications: '<path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4"/>',
   n_mdp: '<circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2 2"/>',
@@ -78,6 +80,9 @@ var LIBELLES = { planifiee: 'Planifiée', realisee: 'Réalisée', annulee: 'Annu
   salarie: 'Salarié', benevole: 'Bénévole', prestataire: 'Prestataire', 'aide a la personne': 'Aide à la personne', soins: 'Soins',
   accompagnement: 'Accompagnement', 'lien social': 'Lien social', bon: 'Bon', moyen: 'Moyen', preoccupant: 'Préoccupant',
   emise: 'Émise', payee: 'Payée', impayee: 'Impayée', relancee: 'Relancée', espece: 'Espèces', banque: 'Banque', operateur: 'Opérateur mobile' };
+// Motifs d'absence
+LIBELLES.conge = 'Congé'; LIBELLES.formation = 'Formation'; LIBELLES['arret maladie'] = 'Arrêt maladie'; LIBELLES.imprevue = 'Absence imprévue';
+LIBELLES.hospitalisation = 'Hospitalisation'; LIBELLES.voyage = 'Voyage'; LIBELLES.refus = 'Refus'; if (!LIBELLES.autre) LIBELLES.autre = 'Autre';
 function lib(v) { return LIBELLES.hasOwnProperty(v) ? LIBELLES[v] : (v === null || v === undefined ? '' : v); }
 
 // ---------- Affichage commun ----------
