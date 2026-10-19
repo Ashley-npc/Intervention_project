@@ -2,7 +2,7 @@
 // Disponibilites hebdomadaires d'un intervenant (semaine type : des creneaux par jour).
 //   GET disponibilites.php[?id_intervenant=3]   creneaux  (l'intervenant voit les siens ; le coordinateur/administrateur choisit)
 //   PUT disponibilites.php[?id_intervenant=3]   {creneaux: [{jour: 1, debut: "08:00", fin: "12:00"}, ...]}  remplace toute la semaine
-// Sans aucun creneau, l'intervenant n'est soumis a aucune contrainte. Avec des creneaux, une intervention doit entrer dans l'un d'eux.
+// Table Disponibilite existante : jour_ou_date = 'lundi'..'dimanche', type = 'disponible'. Sans aucun creneau, l'intervenant n'est soumis a aucune contrainte. Avec des creneaux, une intervention doit entrer dans l'un d'eux.
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/journal.php';
@@ -21,9 +21,12 @@ $fiche = $st->fetch();
 if (!$fiche) json_out(404, ['ok' => false, 'message' => 'Intervenant introuvable.']);
 
 function creneaux_de(int $id_v): array {
-    $st = db()->prepare('SELECT jour_semaine, heure_debut, heure_fin FROM disponibilite WHERE id_intervenant = ? ORDER BY jour_semaine, heure_debut');
-    $st->execute([$id_v]);
-    return array_map(function ($c) { return ['jour' => (int)$c['jour_semaine'], 'debut' => substr($c['heure_debut'], 0, 5), 'fin' => substr($c['heure_fin'], 0, 5)]; }, $st->fetchAll());
+    $noms = implode(', ', array_fill(0, 7, '?'));
+    $st = db()->prepare("SELECT jour_ou_date, heure_debut, heure_fin FROM disponibilite WHERE id_intervenant = ? AND type = 'disponible' AND jour_ou_date IN ($noms) ORDER BY heure_debut");
+    $st->execute(array_merge([$id_v], array_values(JOURS_SEMAINE)));
+    $res = array_map(function ($c) { return ['jour' => (int)array_search($c['jour_ou_date'], JOURS_SEMAINE, true), 'debut' => substr($c['heure_debut'], 0, 5), 'fin' => substr($c['heure_fin'], 0, 5)]; }, $st->fetchAll());
+    usort($res, function ($x, $y) { return [$x['jour'], $x['debut']] <=> [$y['jour'], $y['debut']]; });
+    return $res;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -51,9 +54,11 @@ for ($i = 1; $i < count($propres); $i++)
 $pdo = db();
 $pdo->beginTransaction();
 try {
-    $pdo->prepare('DELETE FROM disponibilite WHERE id_intervenant = ?')->execute([$id_v]);
-    $ins = $pdo->prepare('INSERT INTO disponibilite (id_intervenant, jour_semaine, heure_debut, heure_fin) VALUES (?, ?, ?, ?)');
-    foreach ($propres as $c) $ins->execute([$id_v, $c['jour'], $c['debut'] . ':00', $c['fin'] . ':00']);
+    // On ne remplace que la semaine type : les indisponibilites ponctuelles (jour_ou_date = une date) sont conservees.
+    $noms = implode(', ', array_fill(0, 7, '?'));
+    $pdo->prepare("DELETE FROM disponibilite WHERE id_intervenant = ? AND type = 'disponible' AND jour_ou_date IN ($noms)")->execute(array_merge([$id_v], array_values(JOURS_SEMAINE)));
+    $ins = $pdo->prepare("INSERT INTO disponibilite (jour_ou_date, heure_debut, heure_fin, type, id_intervenant) VALUES (?, ?, ?, 'disponible', ?)");
+    foreach ($propres as $c) $ins->execute([JOURS_SEMAINE[$c['jour']], $c['debut'] . ':00', $c['fin'] . ':00', $id_v]);
     $pdo->commit();
 } catch (Throwable $e) { $pdo->rollBack(); throw $e; }
 journaliser('modification', 'disponibilites', $fiche['prenom'] . ' ' . $fiche['nom'] . ' : ' . count($propres) . ' créneau(x)');

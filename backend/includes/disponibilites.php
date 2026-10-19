@@ -16,16 +16,25 @@ function absence_du_jour(string $colonne, int $id, string $date): ?array {
     } catch (Throwable $e) { return null; }
 }
 
-// Message si le creneau n'entre dans aucune disponibilite declaree (null = OK ou aucune disponibilite declaree).
+const JOURS_SEMAINE = [1 => 'lundi', 2 => 'mardi', 3 => 'mercredi', 4 => 'jeudi', 5 => 'vendredi', 6 => 'samedi', 7 => 'dimanche'];
+
+// Message si l'intervenant n'est pas disponible sur ce creneau (null = OK).
+// Table Disponibilite : semaine type = jour_ou_date 'lundi'... + type 'disponible' ; indisponibilite ponctuelle = jour_ou_date '2026-03-10' + type 'indisponible'.
+// Sans aucun creneau « disponible », aucune contrainte de semaine type.
 function hors_disponibilites(int $id_v, string $date, string $debut, string $fin): ?string {
     try {
-        $st = db()->prepare('SELECT heure_debut, heure_fin FROM disponibilite WHERE id_intervenant = ? AND jour_semaine = ?');
-        $tous = db()->prepare('SELECT COUNT(*) FROM disponibilite WHERE id_intervenant = ?');
-        $tous->execute([$id_v]);
+        $debut = substr($debut, 0, 5); $fin = substr($fin, 0, 5);
+        $st = db()->prepare("SELECT heure_debut, heure_fin FROM disponibilite WHERE id_intervenant = ? AND type = 'indisponible' AND jour_ou_date = ?");
+        $st->execute([$id_v, $date]);
+        foreach ($st->fetchAll() as $c) if (substr($c['heure_debut'], 0, 5) < $fin && substr($c['heure_fin'], 0, 5) > $debut) return "est indisponible ce jour-là sur ce créneau.";
+        $noms = implode(', ', array_fill(0, 7, '?'));
+        $tous = db()->prepare("SELECT COUNT(*) FROM disponibilite WHERE id_intervenant = ? AND type = 'disponible' AND jour_ou_date IN ($noms)");
+        $tous->execute(array_merge([$id_v], array_values(JOURS_SEMAINE)));
         if (!(int)$tous->fetchColumn()) return null;
-        $st->execute([$id_v, jour_semaine($date)]);
-        foreach ($st->fetchAll() as $c) if (substr($c['heure_debut'], 0, 5) <= substr($debut, 0, 5) && substr($c['heure_fin'], 0, 5) >= substr($fin, 0, 5)) return null;
-        return "n'est pas disponible ce jour-là sur ce créneau (" . substr($debut, 0, 5) . '-' . substr($fin, 0, 5) . ').';
+        $st = db()->prepare("SELECT heure_debut, heure_fin FROM disponibilite WHERE id_intervenant = ? AND type = 'disponible' AND jour_ou_date = ?");
+        $st->execute([$id_v, JOURS_SEMAINE[jour_semaine($date)]]);
+        foreach ($st->fetchAll() as $c) if (substr($c['heure_debut'], 0, 5) <= $debut && substr($c['heure_fin'], 0, 5) >= $fin) return null;
+        return "n'est pas disponible ce jour-là sur ce créneau ($debut-$fin).";
     } catch (Throwable $e) { return null; }
 }
 

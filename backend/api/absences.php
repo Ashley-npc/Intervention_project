@@ -180,10 +180,11 @@ $st->execute([$pid, $fin, $debut, $id]);
 if ($autre = $st->fetch()) json_out(409, ['ok' => false, 'message' => 'Une absence est déjà enregistrée du ' . date_fr_courte($autre['date_debut']) . ' au ' . date_fr_courte($autre['date_fin']) . '.', 'erreurs' => ['date_debut' => 'Période déjà couverte.']]);
 
 if ($creation) {
-    db()->prepare('INSERT INTO absence (id_intervenant, id_beneficiaire, motif, date_debut, date_fin, commentaire, justificatif, annulee, id_utilisateur, date_creation) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)')
-        ->execute([$id_v, $id_b, $v['motif'], $debut, $fin, $v['commentaire'], $v['justificatif'], $user['id'], date('Y-m-d H:i:s')]);
+    db()->prepare('INSERT INTO absence (id_intervenant, id_beneficiaire, motif, planifiee, date_debut, date_fin, commentaire, justificatif, annulee, id_utilisateur, date_creation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)')
+        ->execute([$id_v, $id_b, $v['motif'], $v['motif'] === 'imprevue' ? 0 : 1, $debut, $fin, $v['commentaire'], $v['justificatif'], $user['id'], date('Y-m-d H:i:s')]);
     $id = (int)db()->lastInsertId();
 } else {
+    if (isset($v['motif'])) $v['planifiee'] = $v['motif'] === 'imprevue' ? 0 : 1;
     $sets = implode(', ', array_map(function ($c) { return "$c = ?"; }, array_keys($v)));
     db()->prepare("UPDATE absence SET $sets WHERE id_absence = ?")->execute(array_merge(array_values($v), [$id]));
 }
