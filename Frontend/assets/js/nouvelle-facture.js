@@ -27,6 +27,8 @@ Shell.demarrer(function (contenu) {
         h += '<div class="table-wrap stack"><table><thead><tr><th>Date</th><th>Type</th><th>Durée</th><th>Tarif / h</th><th>Montant</th></tr></thead><tbody>';
         for (var i = 0; i < d.lignes.length; i++) { var l = d.lignes[i]; h += '<tr><td data-l="Date">' + dateFr(l.date) + '</td><td data-l="Type">' + esc(lib(l.type)) + '</td><td data-l="Durée">' + l.minutes + ' min</td><td data-l="Tarif / h">' + argent(l.tarif) + '</td><td data-l="Montant">' + argent(l.montant) + '</td></tr>'; }
         h += '</tbody></table></div><p><b>Total : ' + argent(d.total) + '</b></p>';
+        if (d.organisme) h += '<p>Pris en charge par <b>' + esc(d.organisme) + '</b> (' + d.taux + ' %) : <b>' + argent(d.part_organisme) + '</b><br>Reste à charge du bénéficiaire : <b>' + argent(d.reste_a_charge) + '</b></p>';
+        else h += '<p class="muted">Aucune prise en charge applicable : tout est à la charge du bénéficiaire.</p>';
         if (!d.types_sans_tarif.length) h += '<div class="actions"><button type="button" class="btn" id="creer">Créer la facture</button></div>';
       }
       res.innerHTML = h + '</section>';

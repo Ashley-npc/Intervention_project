@@ -29,7 +29,7 @@ if (isset($v['mode'])) { [$detail, $err_d] = valider($d, $REGLES_DETAIL[$v['mode
 $montant = lire_montant($d['montant'] ?? '');
 if ($montant === null) $erreurs['montant'] = 'Le montant doit être un nombre positif (8 chiffres maximum).';
 $id_f = (int)($d['id_facture'] ?? 0);
-$st = db()->prepare('SELECT montant_total, statut FROM facture WHERE id_facture = ?'); $st->execute([$id_f]);
+$st = db()->prepare('SELECT montant_total, statut, part_organisme FROM facture WHERE id_facture = ?'); $st->execute([$id_f]);
 $f = $st->fetch();
 if (!$f) json_out(404, ['ok' => false, 'message' => 'Facture introuvable.']);
 if ($erreurs) json_out(422, ['ok' => false, 'message' => 'Certains champs sont à corriger.', 'erreurs' => $erreurs]);
@@ -37,6 +37,18 @@ if ($erreurs) json_out(422, ['ok' => false, 'message' => 'Certains champs sont �
 $restant = round((float)$f['montant_total'] - montant_paye($id_f), 2);
 if ($restant <= 0) json_out(409, ['ok' => false, 'message' => 'Cette facture est déjà entièrement payée.']);
 if ($montant > $restant) json_out(422, ['ok' => false, 'message' => "Le montant dépasse le reste à payer ($restant).", 'erreurs' => ['montant' => "Maximum : $restant"]]);
+
+// Facture avec prise en charge : l'organisme ne règle que sa part, le bénéficiaire que son reste à charge.
+$part = round((float)$f['part_organisme'], 2);
+if ($part > 0) {
+    $total = round((float)$f['montant_total'], 2);
+    $dispo = $v['payeur'] === 'organisme' ? $part - montant_paye_par($id_f, 'organisme') : ($total - $part) - montant_paye_par($id_f, 'beneficiaire');
+    $dispo = max(0, round($dispo, 2));
+    if ($montant > $dispo) {
+        $qui = $v['payeur'] === 'organisme' ? "la part de l'organisme" : 'le reste à charge du bénéficiaire';
+        json_out(422, ['ok' => false, 'message' => "Le montant dépasse $qui (reste $dispo).", 'erreurs' => ['montant' => "Maximum pour ce payeur : $dispo"]]);
+    }
+}
 
 $pdo = db();
 $pdo->beginTransaction();

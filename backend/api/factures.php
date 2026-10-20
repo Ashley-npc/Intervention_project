@@ -16,12 +16,16 @@ $methode = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($methode !== 'GET' && $user['role'] === 'direction') json_out(403, ['ok' => false, 'message' => 'Accès refusé.']);
 
-const SELECT_FACTURE = 'SELECT f.id_facture, f.numero, f.date_emission, f.montant_total, f.statut, f.id_beneficiaire, b.nom AS b_nom, b.prenom AS b_prenom,
-        COALESCE((SELECT SUM(p.montant) FROM paiement p WHERE p.id_facture = f.id_facture), 0) AS paye
-        FROM facture f JOIN beneficiaire b ON b.id_beneficiaire = f.id_beneficiaire';
+const SELECT_FACTURE = 'SELECT f.id_facture, f.numero, f.date_emission, f.montant_total, f.statut, f.id_beneficiaire, b.nom AS b_nom, b.prenom AS b_prenom, f.part_organisme, f.taux_applique, o.nom AS organisme_nom,
+        COALESCE((SELECT SUM(p.montant) FROM paiement p WHERE p.id_facture = f.id_facture), 0) AS paye,
+        COALESCE((SELECT SUM(p.montant) FROM paiement p WHERE p.id_facture = f.id_facture AND p.payeur = \'organisme\'), 0) AS paye_org
+        FROM facture f JOIN beneficiaire b ON b.id_beneficiaire = f.id_beneficiaire LEFT JOIN organisme_payeur o ON o.id_organisme = f.id_organisme';
 function facture_vers_front(array $l): array {
     $total = round((float)$l['montant_total'], 2); $paye = round((float)$l['paye'], 2);
+    $part = round((float)$l['part_organisme'], 2); $paye_org = round((float)$l['paye_org'], 2);
     return ['id' => (int)$l['id_facture'], 'numero' => $l['numero'], 'date_emission' => $l['date_emission'], 'montant_total' => $total, 'paye' => $paye,
+            'part_organisme' => $part, 'reste_a_charge' => round($total - $part, 2), 'taux_applique' => $l['taux_applique'] === null ? null : (float)$l['taux_applique'], 'organisme_nom' => $l['organisme_nom'],
+            'restant_organisme' => max(0, round($part - $paye_org, 2)), 'restant_beneficiaire' => max(0, round(($total - $part) - ($paye - $paye_org), 2)),
             'restant' => round($total - $paye, 2), 'statut' => $l['statut'], 'id_beneficiaire' => (int)$l['id_beneficiaire'],
             'beneficiaire_nom' => $l['b_nom'], 'beneficiaire_prenom' => $l['b_prenom']];
 }
@@ -69,7 +73,10 @@ if ($methode === 'POST') {
     if ($erreurs) json_out(422, ['ok' => false, 'message' => 'Certains champs sont à corriger.', 'erreurs' => $erreurs]);
 
     [$lignes, $total, $manquants] = lignes_facturables($id_b, $v['du'], $v['au']);
-    if (!empty($d['apercu'])) json_out(200, ['ok' => true, 'lignes' => $lignes, 'total' => $total, 'types_sans_tarif' => $manquants]);
+    $pec = prise_en_charge_applicable($id_b, date('Y-m-d'));
+    [$part_org, $reste_benef] = repartition($total, $pec);
+    if (!empty($d['apercu'])) json_out(200, ['ok' => true, 'lignes' => $lignes, 'total' => $total, 'types_sans_tarif' => $manquants,
+        'organisme' => $pec ? $pec['nom'] : null, 'taux' => $pec ? $pec['taux'] : null, 'part_organisme' => $part_org, 'reste_a_charge' => $reste_benef]);
     if ($manquants) json_out(422, ['ok' => false, 'message' => 'Aucun tarif pour : ' . implode(', ', $manquants) . '. Ajoutez-le dans « Tarifs ».']);
     if (!$lignes) json_out(422, ['ok' => false, 'message' => "Aucune intervention validée à facturer pour cette période."]);
 
@@ -77,8 +84,8 @@ if ($methode === 'POST') {
     $pdo->beginTransaction();
     try {
         $numero = prochain_numero_facture();
-        $pdo->prepare("INSERT INTO facture (numero, date_emission, montant_total, statut, id_beneficiaire) VALUES (?, ?, ?, 'emise', ?)")
-            ->execute([$numero, date('Y-m-d'), $total, $id_b]);
+        $pdo->prepare("INSERT INTO facture (numero, date_emission, montant_total, statut, id_beneficiaire, id_organisme, part_organisme, taux_applique) VALUES (?, ?, ?, 'emise', ?, ?, ?, ?)")
+            ->execute([$numero, date('Y-m-d'), $total, $id_b, $pec ? $pec['id_organisme'] : null, $part_org, $pec ? $pec['taux'] : null]);
         $id_f = (int)$pdo->lastInsertId();
         $maj = $pdo->prepare('UPDATE intervention SET id_facture = ? WHERE id_intervention = ? AND id_facture IS NULL');
         foreach ($lignes as $l) $maj->execute([$id_f, $l['id']]);
@@ -88,7 +95,7 @@ if ($methode === 'POST') {
         if (est_doublon($e)) json_out(409, ['ok' => false, 'message' => 'Conflit de numéro de facture : réessayez.']);
         throw $e;
     }
-    journaliser('creation', 'facture', $numero . ' - total ' . $total);
+    journaliser('creation', 'facture', $numero . ' - total ' . $total . ($pec ? ' dont organisme ' . $part_org : ''));
     json_out(201, ['ok' => true, 'id' => $id_f, 'numero' => $numero, 'total' => $total]);
 }
 

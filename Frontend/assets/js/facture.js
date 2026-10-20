@@ -13,7 +13,8 @@ Shell.demarrer(function (contenu) {
       (f.statut === 'payee' ? '' : (f.statut === 'relancee' ? '' : '<button type="button" class="btn secondary" data-statut="relancee">Marquer relancée</button>') + (f.statut === 'impayee' ? '' : '<button type="button" class="btn secondary" data-statut="impayee">Marquer impayée</button>')) +
       '</div></div><p class="msg-err" id="msg" hidden></p>' +
       '<section class="card"><header><h2>Résumé</h2></header><dl class="facts">' + ligne('Bénéficiaire', f.beneficiaire_prenom + ' ' + f.beneficiaire_nom) + ligne('Émise le', dateFr(f.date_emission)) +
-      ligne('Total', argent(f.montant_total)) + ligne('Déjà payé', argent(f.paye)) + ligne('Reste à payer', argent(f.restant)) + '</dl></section>' +
+      ligne('Total', argent(f.montant_total)) +
+      (f.part_organisme > 0 ? ligne('Part ' + (f.organisme_nom ? esc(f.organisme_nom) : 'organisme') + ' (' + f.taux_applique + ' %)', argent(f.part_organisme) + ' · reste ' + argent(f.restant_organisme)) + ligne('Reste à charge du bénéficiaire', argent(f.reste_a_charge) + ' · reste ' + argent(f.restant_beneficiaire)) : '') + ligne('Déjà payé', argent(f.paye)) + ligne('Reste à payer', argent(f.restant)) + '</dl></section>' +
       '<section class="card"><header><h2>Interventions facturées</h2></header>';
     if (!it.length) h += '<p class="empty">Aucune intervention rattachée.</p>';
     else {
@@ -38,7 +39,7 @@ Shell.demarrer(function (contenu) {
         '<div class="field"><label for="c_date_paiement">Date</label><input id="c_date_paiement" name="date_paiement" type="date" value="' + aujourdhui() + '"><span class="field-err" id="e_date_paiement"></span></div>' +
         '<div class="field"><label for="c_montant">Montant (Ar) — reste ' + argent(f.restant) + '</label><input id="c_montant" name="montant" type="text" inputmode="decimal" value="' + String(f.restant).replace('.', ',') + '"><span class="field-err" id="e_montant"></span></div>' +
         '<div class="field"><label for="c_mode">Mode</label><select id="c_mode" name="mode"><option value="espece">Espèces</option><option value="banque">Banque</option><option value="operateur">Opérateur mobile</option></select></div>' +
-        '<div class="field"><label for="c_payeur">Payé par</label><select id="c_payeur" name="payeur"><option value="beneficiaire">Le bénéficiaire</option><option value="organisme">Un organisme</option></select></div>' +
+        '<div class="field"><label for="c_payeur">Payé par</label><select id="c_payeur" name="payeur"><option value="beneficiaire">Le bénéficiaire</option><option value="organisme">' + (f.organisme_nom ? esc(f.organisme_nom) : 'Un organisme') + '</option></select></div>' +
         champ('recu_par', 'Encaissé par', 'text', 'espece') + champ('numero_recu', 'N° de reçu', 'text', 'espece') +
         champ('nom_banque', 'Banque *', 'text', 'banque') + '<div class="field" data-mode="banque"><label for="c_type_operation">Opération *</label><select id="c_type_operation" name="type_operation"><option value="cheque">Chèque</option><option value="virement">Virement</option></select><span class="field-err" id="e_type_operation"></span></div>' + champ('reference', 'Référence', 'text', 'banque') +
         champ('nom_operateur', 'Opérateur * (ex. MVola, Orange Money)', 'text', 'operateur') + champ('numero_telephone', 'Numéro de téléphone', 'tel', 'operateur') + champ('reference_transaction', 'Référence de transaction', 'text', 'operateur') +
@@ -52,6 +53,14 @@ Shell.demarrer(function (contenu) {
       for (var k = 0; k < blocs.length; k++) { var m = blocs[k].getAttribute('data-mode'); if (m) blocs[k].hidden = m !== mode.value; }
     }
     if (mode) { mode.addEventListener('change', majMode); majMode(); }
+    // Avec prise en charge, chaque payeur ne règle que sa part : le montant proposé suit le payeur choisi.
+    var payeur = document.getElementById('c_payeur');
+    function majPayeur() {
+      if (f.part_organisme <= 0) return;
+      var r = payeur.value === 'organisme' ? f.restant_organisme : f.restant_beneficiaire;
+      document.getElementById('c_montant').value = String(r).replace('.', ',');
+    }
+    if (payeur) { if (f.part_organisme > 0 && f.restant_organisme > 0) payeur.value = 'organisme'; payeur.addEventListener('change', majPayeur); majPayeur(); }
     var form = document.getElementById('f');
     if (form) form.addEventListener('submit', function (e) {
       e.preventDefault(); effacerErreurs('msg2');

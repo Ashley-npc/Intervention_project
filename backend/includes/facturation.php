@@ -58,3 +58,25 @@ function lire_montant($v): ?float {
     $f = round((float)$s, 2);
     return $f > 0 ? $f : null;
 }
+
+// Prise en charge applicable a un bénéficiaire à une date : l'organisme au taux le plus élevé parmi ceux dont la période couvre la date.
+// Renvoie ['id_organisme', 'nom', 'taux'] ou null.
+function prise_en_charge_applicable(int $id_benef, string $date): ?array {
+    $st = db()->prepare('SELECT p.id_organisme, o.nom, p.taux_prise_en_charge AS taux FROM prise_en_charge p JOIN organisme_payeur o ON o.id_organisme = p.id_organisme
+        WHERE p.id_beneficiaire = ? AND p.taux_prise_en_charge > 0 AND (p.date_debut IS NULL OR p.date_debut <= ?) AND (p.date_fin IS NULL OR p.date_fin >= ?)
+        ORDER BY p.taux_prise_en_charge DESC, o.nom LIMIT 1');
+    $st->execute([$id_benef, $date, $date]);
+    $l = $st->fetch();
+    return $l ? ['id_organisme' => (int)$l['id_organisme'], 'nom' => $l['nom'], 'taux' => (float)$l['taux']] : null;
+}
+// Répartition d'un total : [part de l'organisme, reste à charge du bénéficiaire].
+function repartition(float $total, ?array $pec): array {
+    $part = $pec ? round($total * min(100.0, $pec['taux']) / 100, 2) : 0.0;
+    return [$part, round($total - $part, 2)];
+}
+// Somme payée sur une facture par un type de payeur (« organisme » ou « beneficiaire » ; un payeur vide compte comme bénéficiaire).
+function montant_paye_par(int $id_facture, string $payeur): float {
+    $st = db()->prepare("SELECT COALESCE(SUM(montant), 0) FROM paiement WHERE id_facture = ? AND " . ($payeur === 'organisme' ? "payeur = 'organisme'" : "(payeur IS NULL OR payeur <> 'organisme')"));
+    $st->execute([$id_facture]);
+    return round((float)$st->fetchColumn(), 2);
+}
