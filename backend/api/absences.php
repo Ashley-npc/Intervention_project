@@ -13,6 +13,7 @@ require __DIR__ . '/../includes/notifications.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 require __DIR__ . '/../includes/disponibilites.php';
+require __DIR__ . '/../includes/referentiels.php';
 
 $user = exiger_connexion(['coordinateur', 'intervenant', 'beneficiaire']);
 $gestion = $user['role'] === 'coordinateur';
@@ -107,7 +108,7 @@ if ($methode === 'GET') {
     $st = db()->prepare(SELECT_ABSENCE . ($where ? ' WHERE ' . implode(' AND ', $where) : '') . ' ORDER BY a.date_debut DESC, a.id_absence DESC LIMIT 200');
     $st->execute($params);
     $items = array_map('absence_vers_front', $st->fetchAll());
-    $reponse = ['ok' => true, 'items' => $items, 'motifs_intervenant' => MOTIFS_ABSENCE_INTERVENANT, 'motifs_beneficiaire' => MOTIFS_ABSENCE_BENEFICIAIRE,
+    $reponse = ['ok' => true, 'items' => $items, 'motifs_intervenant' => referentiel_valeurs('motif_absence_intervenant', MOTIFS_ABSENCE_INTERVENANT), 'motifs_beneficiaire' => referentiel_valeurs('motif_absence_beneficiaire', MOTIFS_ABSENCE_BENEFICIAIRE),
                 'role' => $user['role']];
     if ($gestion) {
         $reponse['intervenants'] = db()->query('SELECT id_intervenant AS id, nom, prenom FROM intervenant WHERE actif = 1 ORDER BY nom, prenom')->fetchAll();
@@ -156,7 +157,7 @@ if ($creation) {
     }
 }
 $est_intervenant = $id_v !== null;
-$motifs = $est_intervenant ? MOTIFS_ABSENCE_INTERVENANT : MOTIFS_ABSENCE_BENEFICIAIRE;
+$motifs = $est_intervenant ? referentiel_valeurs('motif_absence_intervenant', MOTIFS_ABSENCE_INTERVENANT) : referentiel_valeurs('motif_absence_beneficiaire', MOTIFS_ABSENCE_BENEFICIAIRE);
 [$v, $e2] = valider($d, [
     'motif'       => ['libelle' => 'Le motif', 'type' => 'choix', 'requis' => true, 'options' => $motifs],
     'date_debut'  => ['libelle' => 'La date de début', 'type' => 'date', 'requis' => true],

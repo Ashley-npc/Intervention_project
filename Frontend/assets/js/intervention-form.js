@@ -2,7 +2,7 @@
 Shell.demarrer(function (contenu) {
   var id = param('id');
   document.title = (id ? 'Modifier' : 'Nouvelle') + ' intervention · Suivi à domicile';
-  var TYPES = ['aide a la personne', 'soins', 'accompagnement', 'lien social'];
+  var TYPES = (window.REFERENTIELS && window.REFERENTIELS.type_intervention && window.REFERENTIELS.type_intervention.length) ? window.REFERENTIELS.type_intervention.slice() : ['aide a la personne', 'soins', 'accompagnement', 'lien social'];
 
   function options(liste, choisi, vide) {
     var h = vide ? '<option value="">' + vide + '</option>' : '';
@@ -19,7 +19,7 @@ Shell.demarrer(function (contenu) {
       '<div class="field"><label for="c_id_beneficiaire">Bénéficiaire *</label><select id="c_id_beneficiaire" name="id_beneficiaire">' + options(personnes(benefs), x.id_beneficiaire, '— choisir —') + '</select><span class="field-err" id="e_id_beneficiaire"></span></div>' +
       '<div class="field"><label for="c_id_intervenant">Intervenant *</label><select id="c_id_intervenant" name="id_intervenant">' + options(personnes(intervs), x.id_intervenant, '— choisir —') + '</select><span class="field-err" id="e_id_intervenant"></span></div>' +
       '<div class="field"><label for="c_date">Date *</label><input id="c_date" name="date" type="date" value="' + esc(x.date || '') + '"><span class="field-err" id="e_date"></span></div>' +
-      '<div class="field"><label for="c_type">Type *</label><select id="c_type" name="type">' + options(TYPES.map(function (t) { return [t, lib(t)]; }), x.type, '— choisir —') + '</select><span class="field-err" id="e_type"></span></div>' +
+      '<div class="field"><label for="c_type">Type *</label><select id="c_type" name="type">' + options((x.type && TYPES.indexOf(x.type) < 0 ? TYPES.concat([x.type]) : TYPES).map(function (t) { return [t, lib(t)]; }), x.type, '— choisir —') + '</select><span class="field-err" id="e_type"></span></div>' +
       '<div class="field"><label for="c_heure_debut">Début *</label><input id="c_heure_debut" name="heure_debut" type="time" value="' + esc(x.heure_debut || '') + '"><span class="field-err" id="e_heure_debut"></span></div>' +
       '<div class="field"><label for="c_heure_fin">Fin *</label><input id="c_heure_fin" name="heure_fin" type="time" value="' + esc(x.heure_fin || '') + '"><span class="field-err" id="e_heure_fin"></span></div>' +
       '</div></section><section class="card"><header><h2>Lieu et suivi</h2></header><div class="form-grid">' +

@@ -554,3 +554,8 @@ button.bt { cursor: pointer; border: 1px solid transparent; font: inherit; font-
 .msg-ok[hidden] { display: none; }
 @media (max-width: 480px) { .rail { grid-template-columns: minmax(0, 1fr) !important; } .filtres { width: 100%; justify-content: space-between; } }
 .page-head select { width: auto; min-width: 200px; }
+
+/* Parametres (administration) */
+.urow .acts { flex: none; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+#p-ref .card { margin-top: 16px; }
+#p-sect, #p-struct { margin-bottom: 16px; }

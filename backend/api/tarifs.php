@@ -7,18 +7,19 @@ require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/facturation.php';
+require __DIR__ . '/../includes/referentiels.php';
 
 $user = exiger_connexion(['facturation', 'direction']);
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $l = db()->query('SELECT id_tarif AS id, type_intervention, montant_horaire, date_debut_validite, date_fin_validite FROM tarif ORDER BY type_intervention, date_debut_validite DESC')->fetchAll();
     foreach ($l as &$t) $t['montant_horaire'] = (float)$t['montant_horaire'];
-    json_out(200, ['ok' => true, 'items' => $l, 'types' => TYPES_INTERVENTION]);
+    json_out(200, ['ok' => true, 'items' => $l, 'types' => referentiel_valeurs('type_intervention', TYPES_INTERVENTION)]);
 }
 exiger_methode('POST');
 if ($user['role'] === 'direction') json_out(403, ['ok' => false, 'message' => 'Accès refusé.']);
 $d = corps_json();
 [$v, $erreurs] = valider($d, [
-    'type_intervention'   => ['libelle' => 'Le type', 'type' => 'choix', 'requis' => true, 'options' => TYPES_INTERVENTION],
+    'type_intervention'   => ['libelle' => 'Le type', 'type' => 'choix', 'requis' => true, 'options' => referentiel_valeurs('type_intervention', TYPES_INTERVENTION)],
     'date_debut_validite' => ['libelle' => 'La date de début', 'type' => 'date', 'requis' => true],
 ], true);
 $montant = lire_montant($d['montant_horaire'] ?? '');

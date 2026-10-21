@@ -12,6 +12,7 @@ require __DIR__ . '/../includes/notifications.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 require __DIR__ . '/../includes/disponibilites.php';
+require __DIR__ . '/../includes/referentiels.php';
 
 $user = exiger_connexion(['coordinateur', 'intervenant']);
 $est_intervenant = $user['role'] === 'intervenant';
@@ -25,7 +26,7 @@ $REGLES = [
     'date'              => ['libelle' => 'La date',          'type' => 'date',  'requis' => true],
     'heure_debut'       => ['libelle' => "L'heure de début", 'type' => 'heure', 'requis' => true],
     'heure_fin'         => ['libelle' => "L'heure de fin",   'type' => 'heure', 'requis' => true],
-    'type'              => ['libelle' => 'Le type',          'type' => 'choix', 'requis' => true, 'options' => TYPES_INTERVENTION],
+    'type'              => ['libelle' => 'Le type',          'type' => 'choix', 'requis' => true, 'options' => referentiel_valeurs('type_intervention', TYPES_INTERVENTION)],
     'lieu'              => ['libelle' => 'Le lieu',          'type' => 'choix', 'options' => ['domicile', 'exterieur'], 'defaut' => 'domicile'],
     'adresse_exterieur' => ['libelle' => "L'adresse",        'max' => 255],
     'urgente'           => ['libelle' => "L'urgence",        'type' => 'booleen', 'defaut' => 0],
