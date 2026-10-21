@@ -15,7 +15,7 @@ $st = db()->query("SELECT b.id_beneficiaire AS id, b.nom, b.prenom, COUNT(*) AS 
                    GROUP BY b.id_beneficiaire, b.nom, b.prenom ORDER BY MIN(i.date), b.nom");
 $a_facturer = [];
 foreach ($st->fetchAll() as $l) {
-    $a_facturer[] = ['id' => (int)$l['id'], 'nom' => $l['nom'], 'prenom' => $l['prenom'], 'nb' => (int)$l['nb'], 'premiere' => $l['premiere'], 'derniere' => $l['derniere']];
+    $a_facturer[] = ['id' => (int) $l['id'], 'nom' => $l['nom'], 'prenom' => $l['prenom'], 'nb' => (int) $l['nb'], 'premiere' => $l['premiere'], 'derniere' => $l['derniere']];
 }
 
 $limite = date('Y-m-d', strtotime('-30 days'));
@@ -25,9 +25,21 @@ $st = db()->query("SELECT f.id_facture AS id, f.numero, f.date_emission, f.monta
                    WHERE f.statut <> 'payee' ORDER BY f.date_emission, f.id_facture");
 $non_payees = [];
 foreach ($st->fetchAll() as $l) {
-    $total = round((float)$l['montant_total'], 2); $paye = round((float)$l['paye'], 2);
-    if ($total - $paye <= 0) continue;
-    $non_payees[] = ['id' => (int)$l['id'], 'numero' => $l['numero'], 'date_emission' => $l['date_emission'], 'montant_total' => $total, 'paye' => $paye,
-                     'restant' => round($total - $paye, 2), 'statut' => $l['statut'], 'nom' => $l['nom'], 'prenom' => $l['prenom'], 'retard' => $l['date_emission'] < $limite];
+    $total = round((float) $l['montant_total'], 2);
+    $paye = round((float) $l['paye'], 2);
+    if ($total - $paye <= 0)
+        continue;
+    $non_payees[] = [
+        'id' => (int) $l['id'],
+        'numero' => $l['numero'],
+        'date_emission' => $l['date_emission'],
+        'montant_total' => $total,
+        'paye' => $paye,
+        'restant' => round($total - $paye, 2),
+        'statut' => $l['statut'],
+        'nom' => $l['nom'],
+        'prenom' => $l['prenom'],
+        'retard' => $l['date_emission'] < $limite
+    ];
 }
 json_out(200, ['ok' => true, 'a_facturer' => $a_facturer, 'non_payees' => $non_payees]);
