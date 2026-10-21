@@ -24,6 +24,8 @@ Shell.demarrer(function (contenu) {
       if (!cr.valide_par_coordinateur) h += '<div class="actions"><button type="button" class="btn" id="valider">Valider le compte rendu</button></div>';
     }
     contenu.innerHTML = h + '</section>';
+    var zoneDocs = document.createElement('section'); zoneDocs.className = 'card'; zoneDocs.hidden = true; contenu.appendChild(zoneDocs);
+    Documents.carte(zoneDocs, { type: 'intervention', id: x.id });
 
     function action(corps, url) {
       appel(url, { method: 'PUT', body: JSON.stringify(corps) }).then(function (r2) {

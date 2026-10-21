@@ -5,7 +5,7 @@
 $chemin = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/');
 $chemin = preg_replace('#/+#', '/', str_replace('\\', '/', $chemin));
 
-if (preg_match('#(^|/)\.\.(/|$)#', $chemin) || preg_match('#^/backend/(config\.php|includes(/|$))#', $chemin)) {
+if (preg_match('#(^|/)\.\.(/|$)#', $chemin) || preg_match('#^/backend/(config\.php|includes(/|$)|stockage(/|$))#', $chemin)) {
     http_response_code(403);
     exit('Accès refusé.');
 }

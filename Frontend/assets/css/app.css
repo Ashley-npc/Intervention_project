@@ -559,3 +559,16 @@ button.bt { cursor: pointer; border: 1px solid transparent; font: inherit; font-
 .urow .acts { flex: none; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 #p-ref .card { margin-top: 16px; }
 #p-sect, #p-struct { margin-bottom: 16px; }
+
+/* ---------- Documents ---------- */
+.docs { list-style: none; margin: 12px 0 0; padding: 0; max-height: min(460px, 65vh); overflow-y: auto; padding-right: 6px; -webkit-overflow-scrolling: touch; }
+.docs .doc { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 14px; padding: 12px 0; border-top: 1px solid #d3dbe2; align-items: start; }
+.docs .doc:first-child { border-top: 0; }
+.doc-acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.doc-hist { grid-column: 1 / -1; }
+.vers { margin: 4px 0 0; padding: 8px 12px; border-left: 3px solid var(--brand-soft); font-size: 14px; }
+.vers li { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 4px 0; flex-wrap: wrap; }
+.doc-titre { font-size: 15px; font-weight: 600; margin: 18px 0 8px; }
+#doc-f { border-top: 1px solid #d3dbe2; margin-top: 14px; }
+.field input[type="file"] { padding: 8px 10px; }
+@media (max-width: 640px) { .docs .doc { grid-template-columns: 1fr; } .doc-acts { justify-content: flex-start; } }

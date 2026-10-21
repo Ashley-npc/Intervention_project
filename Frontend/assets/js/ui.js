@@ -7,6 +7,10 @@ function esc(t) {
 // Icones SVG en ligne (trait simple, couleur du texte). ico('ouvrir','Ouvrir') -> <svg> ; le libelle va dans title/aria-label du bouton.
 var ICONES = {
   ouvrir: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  voir: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  telecharger: '<path d="M12 4v10M8 10l4 4 4-4M5 19h14"/>',
+  televerser: '<path d="M12 15V5M8 9l4-4 4 4M5 19h14"/>',
+  n_documents: '<path d="M3 6h6l2 2h10v11H3z"/>',
   modifier: '<path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4"/>',
   retirer: '<path d="M6 6l12 12M18 6L6 18"/>',
   lue: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',

@@ -9,11 +9,19 @@ Shell.demarrer(function (contenu) {
   }
 
   // 1. Structure
-  var CHAMPS = [['nom_structure', 'Nom de la structure *', 'text'], ['adresse', 'Adresse', 'text'], ['telephone', 'Téléphone', 'text'], ['courriel', 'Courriel', 'email']];
+  var CHAMPS = [['nom_structure', 'Nom de la structure *', 'text'], ['adresse', 'Adresse', 'text'], ['telephone', 'Téléphone', 'text'], ['courriel', 'Courriel', 'email'], ['duree_conservation_ans', 'Conservation des documents (années)', 'select']];
   function structure() {
     appel('parametres.php').then(function (r) {
       var p = r.data.parametres || {}, h = '<header><h2>Structure</h2></header><form id="f-struct" novalidate><p class="msg-err" id="msg" hidden></p><div class="form-grid">';
-      CHAMPS.forEach(function (c) { h += '<div class="field"><label for="c_' + c[0] + '">' + c[1] + '</label><input id="c_' + c[0] + '" name="' + c[0] + '" type="' + c[2] + '" value="' + esc(p[c[0]] || '') + '"><span class="field-err" id="e_' + c[0] + '"></span></div>'; });
+      CHAMPS.forEach(function (c) {
+        var champ;
+        if (c[2] === 'select') {
+          champ = '<select id="c_' + c[0] + '" name="' + c[0] + '">';
+          ['1', '2', '3', '5', '10', '15', '20', '30'].forEach(function (n) { champ += '<option value="' + n + '"' + (String(p[c[0]] || '5') === n ? ' selected' : '') + '>' + n + (n === '1' ? ' an' : ' ans') + '</option>'; });
+          champ += '</select>';
+        } else champ = '<input id="c_' + c[0] + '" name="' + c[0] + '" type="' + c[2] + '" value="' + esc(p[c[0]] || '') + '">';
+        h += '<div class="field"><label for="c_' + c[0] + '">' + c[1] + '</label>' + champ + '<span class="field-err" id="e_' + c[0] + '"></span></div>';
+      });
       document.getElementById('p-struct').innerHTML = h + '</div><div class="acts"><button class="btn" type="submit">Enregistrer</button> <span class="muted" id="m-struct"></span></div></form>';
       document.getElementById('f-struct').addEventListener('submit', function (e) {
         e.preventDefault(); effacerErreurs();

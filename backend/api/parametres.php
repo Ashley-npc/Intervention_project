@@ -8,13 +8,14 @@ require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/validation.php';
 
 $user = exiger_connexion([], true);
-const CLES_PARAMETRES = ['nom_structure', 'adresse', 'telephone', 'courriel'];
+const CLES_PARAMETRES = ['nom_structure', 'adresse', 'telephone', 'courriel', 'duree_conservation_ans'];
 
 function lire_parametres(): array {
     $p = array_fill_keys(CLES_PARAMETRES, null);
     try { foreach (db()->query('SELECT cle, valeur FROM parametre')->fetchAll() as $l) if (array_key_exists($l['cle'], $p)) $p[$l['cle']] = $l['valeur']; }
     catch (Throwable $e) {}   // table absente : valeurs vides
     if ($p['nom_structure'] === null || $p['nom_structure'] === '') $p['nom_structure'] = 'Suivi à domicile';
+    if ($p['duree_conservation_ans'] === null || $p['duree_conservation_ans'] === '') $p['duree_conservation_ans'] = '5';
     return $p;
 }
 
@@ -26,6 +27,7 @@ if ($user['role'] !== 'administrateur') json_out(403, ['ok' => false, 'message' 
     'adresse'       => ['libelle' => "L'adresse", 'max' => 255],
     'telephone'     => ['libelle' => 'Le téléphone', 'type' => 'telephone'],
     'courriel'      => ['libelle' => 'Le courriel', 'type' => 'courriel', 'max' => 150],
+    'duree_conservation_ans' => ['libelle' => 'La durée de conservation', 'type' => 'choix', 'options' => ['1', '2', '3', '5', '10', '15', '20', '30']],
 ], false);
 if ($erreurs) json_out(422, ['ok' => false, 'message' => 'Certains champs sont à corriger.', 'erreurs' => $erreurs]);
 if (!$v) json_out(400, ['ok' => false, 'message' => 'Rien à modifier.']);
