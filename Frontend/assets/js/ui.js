@@ -151,3 +151,10 @@ function argent(n) {
   return p.join(',') + '\u00a0Ar';
 }
 function badgeFacture(s) { return '<span class="badge ' + (s === 'payee' ? 'ok' : s === 'impayee' ? 'danger' : s === 'relancee' ? 'warn' : '') + '">' + esc(lib(s)) + '</span>'; }
+
+// Section repliable (fermée par défaut). L'état ouvert/fermé est gardé quand la page se redessine.
+var REPLI = {};
+function repli(cle, titre, corps, badge) {
+  return '<details class="repli" data-k="' + esc(cle) + '"' + (REPLI[cle] ? ' open' : '') + '><summary><h2>' + titre + '</h2>' + (badge || '') + '</summary>' + corps + '</details>';
+}
+document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.classList && d.classList.contains('repli')) REPLI[d.getAttribute('data-k')] = d.open; }, true);

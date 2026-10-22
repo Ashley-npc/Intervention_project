@@ -68,7 +68,6 @@ var Documents = (function () {
       zone.hidden = false;
       var d = r.data, h = '';
       var compte = document.getElementById('doc-compte'); if (compte) compte.textContent = d.items.length + ' document' + (d.items.length > 1 ? 's' : '') + ' · conservation : ' + d.duree_conservation_ans + (d.duree_conservation_ans > 1 ? ' ans' : ' an');
-      if (cible) h += '<header><h2>Documents</h2><span class="badge grey">' + d.items.length + '</span></header>';
       if (!cible || d.categories.length > 4) {
         h += '<div class="toolbar"><input type="text" id="doc-q" placeholder="Rechercher un titre, un fichier, une personne" value="' + esc(etat.q) + '"><select id="doc-cat" aria-label="Catégorie"><option value="">Toutes les catégories</option>';
         for (var i = 0; i < d.categories.length; i++) h += '<option value="' + esc(d.categories[i]) + '"' + (etat.categorie === d.categories[i] ? ' selected' : '') + '>' + esc(catLib(d.categories[i])) + '</option>';
@@ -76,7 +75,7 @@ var Documents = (function () {
       }
       h += d.items.length ? '<ul class="docs">' + d.items.map(function (x) { return ligne(x, d.peut_archiver); }).join('') + '</ul>' : '<p class="empty">Aucun document.</p>';
       h += formulaire(d.categories_depot);
-      zone.innerHTML = h;
+      zone.innerHTML = cible ? repli('doc-' + cible.type + '-' + cible.id, 'Documents', h, '<span class="badge grey">' + d.items.length + '</span>') : h;
       majCibles();
       Object.keys(ouverts).forEach(function (id) { if (ouverts[id]) afficherHistorique(id); });
       var q = document.getElementById('doc-q'), cat = document.getElementById('doc-cat'), ar = document.getElementById('doc-arch');

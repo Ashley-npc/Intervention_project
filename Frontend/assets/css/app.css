@@ -558,7 +558,8 @@ button.bt { cursor: pointer; border: 1px solid transparent; font: inherit; font-
 /* Parametres (administration) */
 .urow .acts { flex: none; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 #p-ref .card { margin-top: 16px; }
-#p-sect, #p-struct { margin-bottom: 16px; }
+#p-sect, #p-struct { margin-bottom: 0; }
+#p-ref { display: flex; flex-direction: column; gap: 20px; }
 
 /* ---------- Documents ---------- */
 .docs { list-style: none; margin: 12px 0 0; padding: 0; max-height: min(460px, 65vh); overflow-y: auto; padding-right: 6px; -webkit-overflow-scrolling: touch; }
@@ -588,3 +589,12 @@ h2.sect { font-size: 15px; margin: 26px 0 12px; color: var(--muted); font-weight
 .bulle span { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
 .bulle.moi { align-self: flex-end; background: #d8eaf1; }
 @media (max-width: 800px) { .msg-layout { grid-template-columns: minmax(0, 1fr); gap: 14px; } .bulle { max-width: 92%; } }
+
+/* Sections repliables */
+details.repli > summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
+details.repli > summary::-webkit-details-marker { display: none; }
+details.repli > summary h2 { margin: 0; }
+details.repli > summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .15s; }
+details.repli[open] > summary::after { transform: rotate(-135deg); }
+details.repli > :not(summary) { margin-top: 16px; }
+details.repli > summary:focus-visible { outline: 2px solid var(--brand-dark); outline-offset: 4px; border-radius: 6px; }

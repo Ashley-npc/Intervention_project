@@ -12,7 +12,7 @@ Shell.demarrer(function (contenu) {
   var CHAMPS = [['nom_structure', 'Nom de la structure *', 'text'], ['adresse', 'Adresse', 'text'], ['telephone', 'Téléphone', 'text'], ['courriel', 'Courriel', 'email'], ['duree_conservation_ans', 'Conservation des documents (années)', 'select']];
   function structure() {
     appel('parametres.php').then(function (r) {
-      var p = r.data.parametres || {}, h = '<header><h2>Structure</h2></header><form id="f-struct" novalidate><p class="msg-err" id="msg" hidden></p><div class="form-grid">';
+      var p = r.data.parametres || {}, h = '<form id="f-struct" novalidate><p class="msg-err" id="msg" hidden></p><div class="form-grid">';
       CHAMPS.forEach(function (c) {
         var champ;
         if (c[2] === 'select') {
@@ -22,7 +22,7 @@ Shell.demarrer(function (contenu) {
         } else champ = '<input id="c_' + c[0] + '" name="' + c[0] + '" type="' + c[2] + '" value="' + esc(p[c[0]] || '') + '">';
         h += '<div class="field"><label for="c_' + c[0] + '">' + c[1] + '</label>' + champ + '<span class="field-err" id="e_' + c[0] + '"></span></div>';
       });
-      document.getElementById('p-struct').innerHTML = h + '</div><div class="acts"><button class="btn" type="submit">Enregistrer</button> <span class="muted" id="m-struct"></span></div></form>';
+      document.getElementById('p-struct').innerHTML = repli('struct', 'Structure', h + '</div><div class="acts"><button class="btn" type="submit">Enregistrer</button> <span class="muted" id="m-struct"></span></div></form>');
       document.getElementById('f-struct').addEventListener('submit', function (e) {
         e.preventDefault(); effacerErreurs();
         var corps = {}; CHAMPS.forEach(function (c) { corps[c[0]] = document.getElementById('c_' + c[0]).value; });
@@ -38,7 +38,7 @@ Shell.demarrer(function (contenu) {
   function secteurs() {
     appel('secteurs.php').then(function (r) {
       var z = document.getElementById('p-sect'); if (!r.ok) { z.innerHTML = '<p class="msg-err">' + esc(r.data.message || 'Erreur.') + '</p>'; return; }
-      var h = '<header><h2>Secteurs</h2></header>';
+      var h = '';
       if (!r.data.items.length) h += '<p class="empty">Aucun secteur.</p>';
       else {
         h += '<div class="table-wrap stack"><table><thead><tr><th>Secteur</th><th>Bénéficiaires</th><th>Intervenants</th><th></th></tr></thead><tbody>';
@@ -48,8 +48,8 @@ Shell.demarrer(function (contenu) {
         });
         h += '</tbody></table></div>';
       }
-      z.innerHTML = h + '<form id="f-sect" class="toolbar"><input type="text" id="s-nom" placeholder="Nouveau secteur" aria-label="Nouveau secteur"><button class="btn small" type="submit">Ajouter</button></form>' +
-        '<p class="muted">Les bénéficiaires et les intervenants sont rattachés à leur secteur par le coordinateur, depuis leur fiche. Un secteur utilisé ne peut pas être supprimé.</p>';
+      z.innerHTML = repli('sect', 'Secteurs', h + '<form id="f-sect" class="toolbar"><input type="text" id="s-nom" placeholder="Nouveau secteur" aria-label="Nouveau secteur"><button class="btn small" type="submit">Ajouter</button></form>' +
+        '<p class="muted">Les bénéficiaires et les intervenants sont rattachés à leur secteur par le coordinateur, depuis leur fiche. Un secteur utilisé ne peut pas être supprimé.</p>');
       document.getElementById('f-sect').addEventListener('submit', function (e) {
         e.preventDefault();
         appel('secteurs.php', { method: 'POST', body: JSON.stringify({ libelle: document.getElementById('s-nom').value }) }).then(function (r) { maj(null, r, secteurs); });
@@ -74,13 +74,14 @@ Shell.demarrer(function (contenu) {
       if (r.data.table_absente) { z.innerHTML = '<section class="card"><p class="msg-err">Listes de valeurs indisponibles : exécutez d\'abord ajout-administration.sql.</p></section>'; return; }
       var h = '';
       r.data.groupes.forEach(function (g) {
-        h += '<section class="card"><header><h2>' + esc(g.titre) + '</h2></header><ul class="ulist">';
+        var l = '<ul class="ulist">';
         g.items.forEach(function (x) {
-          h += '<li class="urow"><span class="uinfo">' + esc(x.libelle) + (x.actif ? '' : ' <span class="badge grey">Désactivé</span>') + (x.systeme ? '' : ' <span class="badge">Ajouté</span>') + '</span> <span class="acts">' +
+          l += '<li class="urow"><span class="uinfo">' + esc(x.libelle) + (x.actif ? '' : ' <span class="badge grey">Désactivé</span>') + (x.systeme ? '' : ' <span class="badge">Ajouté</span>') + '</span> <span class="acts">' +
                (x.systeme ? '' : '<button type="button" class="btn small secondary" data-rn="' + x.id + '" data-nom="' + esc(x.libelle) + '">Renommer</button> ') +
                '<button type="button" class="btn small secondary" data-act="' + x.id + '" data-v="' + (x.actif ? 0 : 1) + '">' + (x.actif ? 'Désactiver' : 'Réactiver') + '</button></span></li>';
         });
-        h += '</ul><form class="toolbar" data-cat="' + esc(g.categorie) + '"><input type="text" placeholder="Nouvelle valeur" aria-label="Nouvelle valeur"><button class="btn small" type="submit">Ajouter</button></form></section>';
+        l += '</ul><form class="toolbar" data-cat="' + esc(g.categorie) + '"><input type="text" placeholder="Nouvelle valeur" aria-label="Nouvelle valeur"><button class="btn small" type="submit">Ajouter</button></form>';
+        h += '<section class="card">' + repli('ref-' + g.categorie, esc(g.titre), l, '<span class="badge grey">' + g.items.length + '</span>') + '</section>';
       });
       z.innerHTML = h + '<p class="muted">Une valeur désactivée n\'est plus proposée dans les formulaires, mais l\'historique reste lisible. Les valeurs d\'origine ne peuvent pas être renommées.</p>';
       z.onsubmit = function (e) {
