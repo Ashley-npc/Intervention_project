@@ -3,7 +3,7 @@ Shell.demarrer(function (contenu, user) {
   document.title = 'Notifications · Suivi à domicile';
   var CANAUX = { application: 'Dans l\'application', courriel: 'Par courriel', sms: 'Par SMS' };
   function lien(x) {
-    if (!x.id_intervention) return '';
+    if (!x.id_intervention) return String(x.contenu).indexOf('Nouveau message de') === 0 ? FRONT + 'messages/liste.html' : '';
     if (user.role === 'coordinateur') return FRONT + 'interventions/fiche.html?id=' + x.id_intervention;
     if (user.role === 'intervenant') return FRONT + 'espace-intervenant/compte-rendu.html?id=' + x.id_intervention;
     return '';
