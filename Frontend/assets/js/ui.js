@@ -29,6 +29,7 @@ var ICONES = {
   n_factures: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/>',
   n_nouvelle: '<circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/>',
   n_organismes: '<path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',
+  n_indicateurs: '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
   n_tarifs: '<path d="M3 12l9-9h8v8l-9 9z"/><circle cx="15.5" cy="8.5" r="1"/>',
   n_utilisateurs: '<rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   n_incidents: '<path d="M12 4l9 16H3zM12 10v4M12 17v.5"/>',

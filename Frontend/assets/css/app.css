@@ -572,3 +572,6 @@ button.bt { cursor: pointer; border: 1px solid transparent; font: inherit; font-
 #doc-f { border-top: 1px solid #d3dbe2; margin-top: 14px; }
 .field input[type="file"] { padding: 8px 10px; }
 @media (max-width: 640px) { .docs .doc { grid-template-columns: 1fr; } .doc-acts { justify-content: flex-start; } }
+
+h2.sect { font-size: 15px; margin: 26px 0 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.kpi b.long { font-size: 24px; }

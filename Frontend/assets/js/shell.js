@@ -13,6 +13,7 @@ var Shell = (function () {
       l.push(['Factures', 'facturation/factures.html', 'factures'], ['Nouvelle facture', 'facturation/nouvelle.html', 'nouvelle'], ['Tarifs', 'facturation/tarifs.html', 'tarifs'], ['Organismes', 'organismes/liste.html', 'organismes']);
     } else if (role === 'intervenant') l.push(['Mon planning', 'espace-intervenant/planning.html', 'planning'], ['Mes absences', 'absences/liste.html', 'absences'], ['Mes disponibilités', 'absences/disponibilites.html', 'disponibilites']);
     else if (role === 'beneficiaire') l.push(['Mes absences', 'absences/liste.html', 'absences']);
+    if (['coordinateur', 'direction', 'responsable_qualite'].indexOf(role) >= 0) l.push(['Indicateurs', 'indicateurs/tableau.html', 'indicateurs']);
     if (['coordinateur', 'administrateur', 'facturation', 'responsable_qualite'].indexOf(role) >= 0) l.push(['Documents', 'documents/liste.html', 'documents']);
     if (role !== 'administrateur' && role !== 'beneficiaire' && role !== 'proche_aidant' && role !== 'facturation' && role !== 'maintenance') l.push(['Incidents', 'interventions/incidents.html', 'incidents']);
     if (role === 'administrateur' || role === 'direction' || role === 'responsable_qualite') l.push(['Journal', 'admin/journal.html', 'journal']);
@@ -31,7 +32,7 @@ var Shell = (function () {
   }
   function coque(user) {
     var courant = document.body.getAttribute('data-menu') || document.body.getAttribute('data-ressource') || '', l = liens(user.role), nav = '';
-    var GROUPES = { accueil: 'Activité', planning: 'Activité', 'comptes-rendus': 'Activité', incidents: 'Activité', beneficiaires: 'Personnes', intervenants: 'Personnes', aidants: 'Personnes', medecins: 'Personnes', organismes: 'Gestion', documents: 'Gestion', disponibilites: 'Personnes',
+    var GROUPES = { accueil: 'Activité', planning: 'Activité', 'comptes-rendus': 'Activité', incidents: 'Activité', indicateurs: 'Activité', beneficiaires: 'Personnes', intervenants: 'Personnes', aidants: 'Personnes', medecins: 'Personnes', organismes: 'Gestion', documents: 'Gestion', disponibilites: 'Personnes',
                     factures: 'Gestion', nouvelle: 'Gestion', tarifs: 'Gestion', utilisateurs: 'Système', parametres: 'Système', journal: 'Système' }, ORDRE = ['Activité', 'Personnes', 'Gestion', 'Système'];
     for (var g = 0; g < ORDRE.length; g++) {
       var bloc = '';
