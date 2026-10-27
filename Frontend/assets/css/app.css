@@ -598,3 +598,10 @@ details.repli > summary::after { content: ""; margin-left: auto; width: 8px; hei
 details.repli[open] > summary::after { transform: rotate(-135deg); }
 details.repli > :not(summary) { margin-top: 16px; }
 details.repli > summary:focus-visible { outline: 2px solid var(--brand-dark); outline-offset: 4px; border-radius: 6px; }
+
+/* Pagination et filtres de liste */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 14px; font-size: 14px; }
+.pagination .muted { margin-left: 4px; }
+.filtres { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 16px; align-items: end; }
+.filtres .field label { font-size: 12px; }
+.filtres select, .filtres input { font: inherit; padding: 9px 12px; border: 1px solid #c4ced7; border-radius: 8px; background: #fff; color: var(--ink); width: 100%; }

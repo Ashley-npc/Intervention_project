@@ -23,6 +23,7 @@ var ICONES = {
   n_planning: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
   n_beneficiaires: '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>',
   n_intervenants: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 2.8-6 6.5-6s6.5 2.5 6.5 6M16 5a3.5 3.5 0 0 1 0 6.5M18 14c2 .7 3.5 2.4 3.5 6"/>',
+  n_interventions: '<path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="1.5"/>',
   n_comptes_rendus: '<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/>',
   n_aidants: '<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
   n_medecins: '<path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z"/>',
@@ -131,10 +132,16 @@ function railInit() {
   }, 50);
 }
 // Affiche les erreurs de champs renvoyées par l'API (422/409) sous chaque champ #e_<nom>.
+// Ouvre les sections repliables qui contiennent un champ en erreur.
+function ouvrirErreurs() {
+  var f = document.querySelectorAll('details.repli .invalide');
+  for (var i = 0; i < f.length; i++) { var d = f[i].closest('details'); if (d) d.open = true; }
+}
 function montrerErreurs(r, msgId) {
   var m = document.getElementById(msgId || 'msg'); m.textContent = r.data.message || 'Erreur.'; m.hidden = false;
   var er = r.data.erreurs || {};
   for (var k in er) { var s = document.getElementById('e_' + k); if (s) { s.textContent = er[k]; if (s.parentNode.className.indexOf('invalide') < 0) s.parentNode.className += ' invalide'; } }
+  ouvrirErreurs();
   window.scrollTo(0, 0);
 }
 function effacerErreurs(msgId) {
@@ -158,3 +165,19 @@ function repli(cle, titre, corps, badge) {
   return '<details class="repli" data-k="' + esc(cle) + '"' + (REPLI[cle] ? ' open' : '') + '><summary><h2>' + titre + '</h2>' + (badge || '') + '</summary>' + corps + '</details>';
 }
 document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.classList && d.classList.contains('repli')) REPLI[d.getAttribute('data-k')] = d.open; }, true);
+
+// Barre de pagination. meta = {total, page, pages}. Les boutons portent data-page ; voir lierPagination().
+function pagination(meta) {
+  if (!meta) return '';
+  var total = '<span class="muted">' + meta.total + ' résultat' + (meta.total > 1 ? 's' : '') + '</span>';
+  if (meta.pages <= 1) return '<div class="pagination">' + total + '</div>';
+  return '<nav class="pagination" aria-label="Pagination"><button type="button" class="btn small secondary" data-page="' + (meta.page - 1) + '"' + (meta.page <= 1 ? ' disabled' : '') + '>‹ Précédent</button>' +
+         '<span>Page ' + meta.page + ' sur ' + meta.pages + ' · ' + total + '</span>' +
+         '<button type="button" class="btn small secondary" data-page="' + (meta.page + 1) + '"' + (meta.page >= meta.pages ? ' disabled' : '') + '>Suivant ›</button></nav>';
+}
+function lierPagination(zone, fn) {
+  zone.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-page]') : null;
+    if (b && !b.disabled) fn(parseInt(b.getAttribute('data-page'), 10));
+  });
+}

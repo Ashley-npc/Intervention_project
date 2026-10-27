@@ -4,6 +4,8 @@ var RESSOURCES = {
     api: 'beneficiaires.php', singulier: 'bénéficiaire', titre: 'Bénéficiaires', nouveau: 'Nouveau bénéficiaire',
     pages: { liste: 'beneficiaires/liste.html', fiche: 'beneficiaires/fiche.html', form: 'beneficiaires/form.html' },
     etat: { off: 'Archivé', action: 'Archiver', retour: 'Restaurer', voirTous: 'Afficher aussi les archivés' },
+    filtres: { etat: { param: 'statut', options: [['actif', 'Actifs'], ['archive', 'Archivés'], ['tous', 'Tous']] }, secteur: true },
+    tris: [['nom', 'Nom'], ['dossier', 'N° de dossier'], ['creation', 'Date de création'], ['naissance', 'Date de naissance']],
     autrePersonne: 'intervenant',
     recherche: 'Nom, prénom ou n° de dossier',
     colonnes: [
@@ -24,7 +26,7 @@ var RESSOURCES = {
       { titre: 'Contact et domicile', champs: [
         { k: 'adresse', l: 'Adresse', requis: 1, large: 1 }, { k: 'telephone', l: 'Téléphone', type: 'tel' },
         { k: 'courriel', l: 'Courriel', type: 'email' }, { k: 'acces_domicile', l: 'Accès au domicile', large: 1 } ] },
-      { titre: 'Préférences', champs: [
+      { titre: 'Préférences', repli: 1, champs: [
         { k: 'horaires_preferes', l: 'Horaires préférés', large: 1 },
         { k: 'animaux', l: 'Animaux' },
         { k: 'habitudes', l: 'Habitudes', type: 'textarea', large: 1 } ] }
@@ -34,6 +36,8 @@ var RESSOURCES = {
     api: 'intervenants.php', singulier: 'intervenant', titre: 'Intervenants', nouveau: 'Nouvel intervenant',
     pages: { liste: 'intervenants/liste.html', fiche: 'intervenants/fiche.html', form: 'intervenants/form.html' },
     etat: { off: 'Désactivé', action: 'Désactiver', retour: 'Réactiver', voirTous: 'Afficher aussi les désactivés' },
+    filtres: { etat: { param: 'statut_actif', options: [['actif', 'Actifs'], ['inactif', 'Désactivés'], ['tous', 'Tous']] }, secteur: true, statut: [['salarie', 'Salarié'], ['benevole', 'Bénévole'], ['prestataire', 'Prestataire']] },
+    tris: [['nom', 'Nom'], ['statut', 'Statut'], ['creation', 'Date de création']],
     autrePersonne: 'beneficiaire',
     recherche: 'Nom ou prénom',
     colonnes: [
@@ -47,7 +51,7 @@ var RESSOURCES = {
         { k: 'statut', l: 'Statut', type: 'select', requis: 1, aff: lib, options: [['', '— choisir —'], ['salarie', 'Salarié'], ['benevole', 'Bénévole'], ['prestataire', 'Prestataire']] } ] },
       { titre: 'Contact', champs: [
         { k: 'adresse', l: 'Adresse', large: 1 }, { k: 'telephone', l: 'Téléphone', type: 'tel' }, { k: 'courriel', l: 'Courriel', type: 'email' } ] },
-      { titre: 'Préférences', champs: [
+      { titre: 'Préférences', repli: 1, champs: [
         { k: 'types_beneficiaires_preferes', l: 'Bénéficiaires préférés', large: 1 },
         { k: 'horaires_preferes', l: 'Horaires préférés', large: 1 } ] }
     ]
@@ -57,6 +61,7 @@ var RESSOURCES = {
     api: 'aidants.php', singulier: 'proche aidant', titre: 'Proches aidants', nouveau: 'Nouveau proche aidant',
     pages: { liste: 'aidants/liste.html', fiche: 'aidants/fiche.html', form: 'aidants/form.html' },
     etat: { off: 'Désactivé', action: 'Désactiver', retour: 'Réactiver', voirTous: 'Afficher aussi les désactivés' },
+    filtres: { etat: { param: 'statut_actif', options: [['actif', 'Actifs'], ['inactif', 'Désactivés'], ['tous', 'Tous']] } },
     recherche: 'Nom ou prénom',
     colonnes: [
       { k: 'nom', l: 'Nom', f: function (x) { return x.nom + ' ' + x.prenom; } },

@@ -5,7 +5,7 @@ var Shell = (function () {
   function liens(role) {
     var l = [['Tableau de bord', PAGES[role], 'accueil']];
     if (role === 'coordinateur') {
-      l.push(['Planning', 'interventions/planning.html', 'planning'], ['Bénéficiaires', 'beneficiaires/liste.html', 'beneficiaires'],
+      l.push(['Planning', 'interventions/planning.html', 'planning'], ['Interventions', 'interventions/liste.html', 'interventions'], ['Bénéficiaires', 'beneficiaires/liste.html', 'beneficiaires'],
              ['Intervenants', 'intervenants/liste.html', 'intervenants'], ['Comptes rendus', 'interventions/comptes-rendus.html', 'comptes-rendus']);
       l.push(['Proches aidants', 'aidants/liste.html', 'aidants'], ['Médecins', 'medecins/liste.html', 'medecins'], ['Organismes', 'organismes/liste.html', 'organismes'], ['Absences', 'absences/liste.html', 'absences'], ['Disponibilités', 'absences/disponibilites.html', 'disponibilites']);
     } else if (role === 'administrateur') l.push(['Utilisateurs', 'admin/utilisateurs.html', 'utilisateurs'], ['Paramètres', 'admin/parametres.html', 'parametres']);
@@ -32,7 +32,7 @@ var Shell = (function () {
   }
   function coque(user) {
     var courant = document.body.getAttribute('data-menu') || document.body.getAttribute('data-ressource') || '', l = liens(user.role), nav = '';
-    var GROUPES = { accueil: 'Activité', planning: 'Activité', 'comptes-rendus': 'Activité', incidents: 'Activité', indicateurs: 'Activité', beneficiaires: 'Personnes', intervenants: 'Personnes', aidants: 'Personnes', medecins: 'Personnes', organismes: 'Gestion', documents: 'Gestion', disponibilites: 'Personnes',
+    var GROUPES = { accueil: 'Activité', planning: 'Activité', interventions: 'Activité', 'comptes-rendus': 'Activité', incidents: 'Activité', indicateurs: 'Activité', beneficiaires: 'Personnes', intervenants: 'Personnes', aidants: 'Personnes', medecins: 'Personnes', organismes: 'Gestion', documents: 'Gestion', disponibilites: 'Personnes',
                     factures: 'Gestion', nouvelle: 'Gestion', tarifs: 'Gestion', utilisateurs: 'Système', parametres: 'Système', journal: 'Système' }, ORDRE = ['Activité', 'Personnes', 'Gestion', 'Système'];
     for (var g = 0; g < ORDRE.length; g++) {
       var bloc = '';

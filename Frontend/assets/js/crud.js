@@ -10,19 +10,35 @@
 
   // ---------- Liste ----------
   function liste() {
+    var F = R.filtres || {}, page = 1, minuteur, dernier = 0, secteurs = [];
+    function sel(id, label, opts, vide) {
+      var o = vide ? '<option value="">' + vide + '</option>' : '';
+      for (var i = 0; i < opts.length; i++) o += '<option value="' + esc(opts[i][0]) + '">' + esc(opts[i][1]) + '</option>';
+      return '<div class="field"><label for="' + id + '">' + label + '</label><select id="' + id + '">' + o + '</select></div>';
+    }
+    var filtres = '<div class="field"><label for="q">Recherche</label><input type="text" id="q" placeholder="' + R.recherche + '" aria-label="Rechercher"></div>';
+    if (F.etat) filtres += sel('f-etat', 'Statut du dossier', F.etat.options);
+    if (F.statut) filtres += sel('f-statut', 'Statut', F.statut, 'Tous');
+    if (F.secteur) filtres += '<div class="field"><label for="f-secteur">Secteur</label><select id="f-secteur"><option value="">Tous</option></select></div>';
+    if (R.tris) filtres += sel('f-tri', 'Trier par', R.tris) + sel('f-sens', 'Ordre', [['asc', 'Croissant'], ['desc', 'Décroissant']]);
     contenu.innerHTML =
       '<div class="page-head"><div><h1>' + R.titre + '</h1><p id="compte"></p></div><a class="btn" href="' + R.pages.form + '">+ ' + R.nouveau + '</a></div>' +
-      '<section class="card"><div class="toolbar"><input type="text" id="q" placeholder="' + R.recherche + '" aria-label="Rechercher">' +
-      '<label class="chk"><input type="checkbox" id="tous"> ' + R.etat.voirTous + '</label></div>' +
-      '<div id="tableau"><p class="empty">Chargement…</p></div></section>';
-    var q = document.getElementById('q'), tous = document.getElementById('tous'), minuteur, dernier = 0;
+      '<section class="card"><div class="filtres">' + filtres + '</div>' +
+      '<div id="tableau"><p class="empty">Chargement…</p></div><div id="pag"></div></section>';
+    function val(id) { var e = document.getElementById(id); return e ? e.value : ''; }
     function charger() {
-      var n = ++dernier;
-      appel(R.api + '?q=' + encodeURIComponent(q.value) + (tous.checked ? '&tous=1' : '')).then(function (r) {
+      var n = ++dernier, u = R.api + '?page=' + page + '&q=' + encodeURIComponent(val('q'));
+      if (F.etat) u += '&' + F.etat.param + '=' + encodeURIComponent(val('f-etat'));
+      if (val('f-statut')) u += '&statut=' + encodeURIComponent(val('f-statut'));
+      if (val('f-secteur')) u += '&id_secteur=' + encodeURIComponent(val('f-secteur'));
+      if (R.tris) u += '&tri=' + encodeURIComponent(val('f-tri')) + '&sens=' + encodeURIComponent(val('f-sens'));
+      appel(u).then(function (r) {
         if (n !== dernier) return;
         if (!r.ok) { document.getElementById('tableau').innerHTML = '<p class="msg-err">' + esc(r.data.message || 'Erreur.') + '</p>'; return; }
-        var items = r.data.items, h = '';
-        document.getElementById('compte').textContent = items.length + ' résultat' + (items.length > 1 ? 's' : '');
+        var items = r.data.items, meta = r.data.meta, h = '';
+        page = meta.page;
+        document.getElementById('compte').textContent = meta.total + ' résultat' + (meta.total > 1 ? 's' : '');
+        document.getElementById('pag').innerHTML = pagination(meta);
         if (!items.length) { document.getElementById('tableau').innerHTML = '<p class="empty">Aucun ' + R.singulier + ' trouvé.</p>'; return; }
         h = '';
         for (var i = 0; i < items.length; i++) {
@@ -42,8 +58,15 @@
         railInit(document.getElementById('tableau'));
       });
     }
-    q.addEventListener('input', function () { clearTimeout(minuteur); minuteur = setTimeout(charger, 250); });
-    tous.addEventListener('change', charger);
+    function depuisZero() { page = 1; charger(); }
+    document.getElementById('q').addEventListener('input', function () { clearTimeout(minuteur); minuteur = setTimeout(depuisZero, 250); });
+    ['f-etat', 'f-statut', 'f-secteur', 'f-tri', 'f-sens'].forEach(function (id) { var e = document.getElementById(id); if (e) e.addEventListener('change', depuisZero); });
+    lierPagination(document.getElementById('pag'), function (p) { page = p; charger(); window.scrollTo(0, 0); });
+    if (F.secteur) appel('secteurs.php').then(function (r) {
+      if (!r.ok) return;
+      var o = ''; for (var i = 0; i < r.data.items.length; i++) o += '<option value="' + r.data.items[i].id + '">' + esc(r.data.items[i].libelle) + '</option>';
+      document.getElementById('f-secteur').insertAdjacentHTML('beforeend', o);
+    });
     charger();
   }
 
@@ -60,13 +83,14 @@
       h += '<p class="msg-err" id="msg" hidden></p>';
       for (var s = 0; s < R.sections.length; s++) {
         var sec = R.sections[s];
-        h += '<section class="card"><header><h2>' + sec.titre + '</h2></header><dl class="facts">';
+        var dl = '<dl class="facts">';
         for (var c = 0; c < sec.champs.length; c++) {
           var ch = sec.champs[c], v = x[ch.k];
           v = ch.aff ? ch.aff(v) : v;
-          h += '<div><dt>' + ch.l + '</dt><dd>' + (v ? esc(v) : '—') + '</dd></div>';
+          dl += '<div><dt>' + ch.l + '</dt><dd>' + (v ? esc(v) : '—') + '</dd></div>';
         }
-        h += '</dl></section>';
+        dl += '</dl>';
+        h += sec.repli ? '<section class="card">' + repli('fiche-' + nom + '-' + s, sec.titre, dl) + '</section>' : '<section class="card"><header><h2>' + sec.titre + '</h2></header>' + dl + '</section>';
       }
       if (r.data.interventions) {
       h += '<section class="card"><header><h2>Dernières interventions</h2><span class="muted">' + r.data.a_venir + ' à venir</span></header>';
@@ -109,26 +133,27 @@
               '<form id="f" novalidate><p class="msg-err" id="msg" hidden></p>';
       for (var s = 0; s < R.sections.length; s++) {
         var sec = R.sections[s];
-        h += '<section class="card"><header><h2>' + sec.titre + '</h2></header><div class="form-grid">';
+        var grille = '';
         for (var c = 0; c < sec.champs.length; c++) {
           var ch = sec.champs[c], v = x[ch.k] === null || x[ch.k] === undefined ? '' : x[ch.k], t = ch.type || 'text', fid = 'c_' + ch.k;
-          h += '<div class="field' + (ch.large ? ' large' : '') + '"><label for="' + fid + '">' + ch.l + (ch.requis ? ' *' : '') + '</label>';
+          grille += '<div class="field' + (ch.large ? ' large' : '') + '"><label for="' + fid + '">' + ch.l + (ch.requis ? ' *' : '') + '</label>';
           if (t === 'select') {
-            h += '<select id="' + fid + '" name="' + ch.k + '">';
-            for (var o = 0; o < ch.options.length; o++) h += '<option value="' + esc(ch.options[o][0]) + '"' + (ch.options[o][0] === v ? ' selected' : '') + '>' + esc(ch.options[o][1]) + '</option>';
-            h += '</select>';
-          } else if (t === 'textarea') h += '<textarea id="' + fid + '" name="' + ch.k + '" rows="3">' + esc(v) + '</textarea>';
-          else h += '<input id="' + fid + '" name="' + ch.k + '" type="' + t + '" value="' + esc(v) + '">';
-          h += (ch.aide && !id ? '<small>' + ch.aide + '</small>' : '') + '<span class="field-err" id="e_' + ch.k + '"></span></div>';
+            grille += '<select id="' + fid + '" name="' + ch.k + '">';
+            for (var o = 0; o < ch.options.length; o++) grille += '<option value="' + esc(ch.options[o][0]) + '"' + (ch.options[o][0] === v ? ' selected' : '') + '>' + esc(ch.options[o][1]) + '</option>';
+            grille += '</select>';
+          } else if (t === 'textarea') grille += '<textarea id="' + fid + '" name="' + ch.k + '" rows="3">' + esc(v) + '</textarea>';
+          else grille += '<input id="' + fid + '" name="' + ch.k + '" type="' + t + '" value="' + esc(v) + '">';
+          grille += (ch.aide && !id ? '<small>' + ch.aide + '</small>' : '') + '<span class="field-err" id="e_' + ch.k + '"></span></div>';
         }
-        h += '</div></section>';
+        h += sec.repli ? '<section class="card">' + repli('form-' + nom + '-' + s, sec.titre, '<div class="form-grid">' + grille + '</div>') + '</section>'
+                       : '<section class="card"><header><h2>' + sec.titre + '</h2></header><div class="form-grid">' + grille + '</div></section>';
       }
       if (!id && nom === 'beneficiaires' && moi && moi.role === 'coordinateur') {
-        h += '<section class="card"><header><h2>Dossier médical</h2><span class="badge grey">Confidentiel · facultatif</span></header><div class="form-grid">' +
+        var dmh = '<div class="form-grid">' +
           '<div class="field"><label for="dm_niveau_autonomie">Niveau d\'autonomie</label><select id="dm_niveau_autonomie" name="dm_niveau_autonomie"><option value="">—</option><option value="autonome">Autonome</option><option value="partielle">Aide partielle</option><option value="dependant">Dépendant</option></select></div>';
         var dm = [['allergies', 'Allergies'], ['pathologies', 'Pathologies'], ['traitements', 'Traitements'], ['observations', 'Observations (internes)']];
-        for (var q = 0; q < dm.length; q++) h += '<div class="field large"><label for="dm_' + dm[q][0] + '">' + dm[q][1] + '</label><textarea id="dm_' + dm[q][0] + '" name="dm_' + dm[q][0] + '" rows="2" maxlength="2000"></textarea></div>';
-        h += '</div></section>';
+        for (var q = 0; q < dm.length; q++) dmh += '<div class="field large"><label for="dm_' + dm[q][0] + '">' + dm[q][1] + '</label><textarea id="dm_' + dm[q][0] + '" name="dm_' + dm[q][0] + '" rows="2" maxlength="2000"></textarea></div>';
+        h += '<section class="card">' + repli('form-dossier-medical', 'Dossier médical', dmh + '</div>', '<span class="badge grey">Confidentiel · facultatif</span>') + '</section>';
       }
       contenu.innerHTML = h + '<div class="actions"><button class="btn" type="submit" id="ok">Enregistrer</button></div></form>';
       document.getElementById('f').addEventListener('submit', envoyer);
@@ -152,6 +177,7 @@
         var m = document.getElementById('msg'); m.textContent = r.data.message || 'Erreur.'; m.hidden = false;
         var er = r.data.erreurs || {};
         for (var k in er) { var s = document.getElementById('e_' + k); if (s) { s.textContent = er[k]; s.parentNode.className += ' invalide'; } }
+        ouvrirErreurs();
         window.scrollTo(0, 0);
       }, function () { b.disabled = false; });
     }

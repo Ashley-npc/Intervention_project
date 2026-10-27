@@ -48,7 +48,7 @@ Shell.demarrer(function (contenu) {
     });
   }
 
-  var attente = [appel('beneficiaires.php'), appel('intervenants.php'), appel('medecins.php')];
+  var attente = [appel('beneficiaires.php?tout=1'), appel('intervenants.php?tout=1'), appel('medecins.php')];
   var rangId = attente.length;
   if (id) attente.push(appel('interventions.php?id=' + encodeURIComponent(id)));
   Promise.all(attente).then(function (rs) {
