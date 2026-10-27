@@ -1,6 +1,7 @@
 <?php
 // API des bénéficiaires (coordinateur).
-//   GET  beneficiaires.php?q=dupont&tous=1   liste (tous=1 : inclut les archivés)
+//   GET  beneficiaires.php?q=dupont&statut=actif|archive|tous&id_secteur=2&tri=nom|dossier|creation|naissance&sens=asc|desc&page=1&taille=20
+//                                            liste filtrée, triée et paginée (critères combinables ; tous=1 = statut tous)
 //   GET  beneficiaires.php?id=3              une fiche + ses interventions
 //   POST beneficiaires.php                   création            corps : champs du bénéficiaire
 //   PUT  beneficiaires.php?id=3              modification        corps : champs à changer (+ "inactif": true pour archiver)
@@ -9,6 +10,7 @@ require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/requetes.php';
+require __DIR__ . '/../includes/pagination.php';
 
 exiger_connexion(['coordinateur']);
 
@@ -70,23 +72,24 @@ if ($methode === 'GET') {
     }
     // ----- la liste
     $q = trim((string)($_GET['q'] ?? ''));
-    $tous = ($_GET['tous'] ?? '') === '1';
+    $statut = (string)($_GET['statut'] ?? (($_GET['tous'] ?? '') === '1' ? 'tous' : 'actif'));
     $where = []; $params = [];
-    if (!$tous) $where[] = 'beneficiaire.archive = 0';
+    if ($statut === 'actif') $where[] = 'beneficiaire.archive = 0';
+    elseif ($statut === 'archive') $where[] = 'beneficiaire.archive = 1';
     if ($q !== '') {
         $where[] = '(beneficiaire.nom LIKE ? OR beneficiaire.prenom LIKE ? OR beneficiaire.numero_dossier LIKE ?)';
         array_push($params, "%$q%", "%$q%", "%$q%");
     }
-    $sql = 'SELECT beneficiaire.id_beneficiaire, beneficiaire.numero_dossier, beneficiaire.nom, beneficiaire.prenom,
-                   beneficiaire.date_naissance, beneficiaire.telephone, beneficiaire.adresse, beneficiaire.archive,
-                   (SELECT COUNT(*) FROM intervention WHERE intervention.id_beneficiaire = beneficiaire.id_beneficiaire) AS nb_interventions
-            FROM beneficiaire'
-         . ($where ? ' WHERE ' . implode(' AND ', $where) : '')
-         . ' ORDER BY beneficiaire.nom, beneficiaire.prenom LIMIT 500';
-    $st = db()->prepare($sql);
-    $st->execute($params);
-    $items = array_map('vers_front', $st->fetchAll());
-    json_out(200, ['ok' => true, 'items' => $items]);
+    if ((int)($_GET['id_secteur'] ?? 0) > 0) { $where[] = 'beneficiaire.id_secteur = ?'; $params[] = (int)$_GET['id_secteur']; }
+    [$page, $taille] = params_page();
+    $ordre = ordre_tri(['nom' => 'beneficiaire.nom', 'dossier' => 'beneficiaire.numero_dossier', 'creation' => 'beneficiaire.date_creation',
+                        'naissance' => 'beneficiaire.date_naissance'], 'nom', 'asc', 'beneficiaire.nom, beneficiaire.prenom');
+    [$lignes, $meta] = lire_page(
+        'beneficiaire.id_beneficiaire, beneficiaire.numero_dossier, beneficiaire.nom, beneficiaire.prenom,
+         beneficiaire.date_naissance, beneficiaire.telephone, beneficiaire.adresse, beneficiaire.archive,
+         (SELECT COUNT(*) FROM intervention WHERE intervention.id_beneficiaire = beneficiaire.id_beneficiaire) AS nb_interventions',
+        'FROM beneficiaire' . ($where ? ' WHERE ' . implode(' AND ', $where) : ''), $params, $ordre, $page, $taille);
+    json_out(200, ['ok' => true, 'items' => array_map('vers_front', $lignes), 'meta' => $meta]);
 }
 
 if ($methode === 'POST') {                                   // ----- création

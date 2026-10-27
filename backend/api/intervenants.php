@@ -9,6 +9,7 @@ require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/requetes.php';
+require __DIR__ . '/../includes/pagination.php';
 
 exiger_connexion(['coordinateur']);
 
@@ -52,22 +53,23 @@ if ($methode === 'GET') {
     }
     // ----- la liste
     $q = trim((string)($_GET['q'] ?? ''));
-    $tous = ($_GET['tous'] ?? '') === '1';
+    $etat = (string)($_GET['statut_actif'] ?? (($_GET['tous'] ?? '') === '1' ? 'tous' : 'actif'));
     $where = []; $params = [];
-    if (!$tous) $where[] = 'intervenant.actif = 1';
+    if ($etat === 'actif') $where[] = 'intervenant.actif = 1';
+    elseif ($etat === 'inactif') $where[] = 'intervenant.actif = 0';
     if ($q !== '') {
         $where[] = '(intervenant.nom LIKE ? OR intervenant.prenom LIKE ?)';
         array_push($params, "%$q%", "%$q%");
     }
-    $sql = 'SELECT intervenant.id_intervenant, intervenant.nom, intervenant.prenom, intervenant.statut,
-                   intervenant.telephone, intervenant.actif,
-                   (SELECT COUNT(*) FROM intervention WHERE intervention.id_intervenant = intervenant.id_intervenant) AS nb_interventions
-            FROM intervenant'
-         . ($where ? ' WHERE ' . implode(' AND ', $where) : '')
-         . ' ORDER BY intervenant.nom, intervenant.prenom LIMIT 500';
-    $st = db()->prepare($sql);
-    $st->execute($params);
-    json_out(200, ['ok' => true, 'items' => array_map('vers_front', $st->fetchAll())]);
+    if ((string)($_GET['statut'] ?? '') !== '') { $where[] = 'intervenant.statut = ?'; $params[] = (string)$_GET['statut']; }          // salarie / benevole / prestataire
+    if ((int)($_GET['id_secteur'] ?? 0) > 0) { $where[] = 'intervenant.id_intervenant IN (SELECT id_intervenant FROM secteur_intervenant WHERE id_secteur = ?)'; $params[] = (int)$_GET['id_secteur']; }
+    [$page, $taille] = params_page();
+    $ordre = ordre_tri(['nom' => 'intervenant.nom', 'statut' => 'intervenant.statut', 'creation' => 'intervenant.date_creation'], 'nom', 'asc', 'intervenant.nom, intervenant.prenom');
+    [$lignes, $meta] = lire_page(
+        'intervenant.id_intervenant, intervenant.nom, intervenant.prenom, intervenant.statut, intervenant.telephone, intervenant.actif,
+         (SELECT COUNT(*) FROM intervention WHERE intervention.id_intervenant = intervenant.id_intervenant) AS nb_interventions',
+        'FROM intervenant' . ($where ? ' WHERE ' . implode(' AND ', $where) : ''), $params, $ordre, $page, $taille);
+    json_out(200, ['ok' => true, 'items' => array_map('vers_front', $lignes), 'meta' => $meta]);
 }
 
 if ($methode === 'POST') {                                   // ----- création

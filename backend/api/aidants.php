@@ -4,6 +4,7 @@
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../includes/validation.php';
+require __DIR__ . '/../includes/pagination.php';
 
 exiger_connexion(['coordinateur']);
 $REGLES = [
@@ -36,13 +37,16 @@ if ($methode === 'GET') {
         json_out(200, ['ok' => true, 'item' => vers_front($l), 'beneficiaires_lies' => $st->fetchAll()]);
     }
     $q = trim((string)($_GET['q'] ?? '')); $where = []; $params = [];
-    if (($_GET['tous'] ?? '') !== '1') $where[] = 'actif = 1';
+    $etat = (string)($_GET['statut_actif'] ?? (($_GET['tous'] ?? '') === '1' ? 'tous' : 'actif'));
+    if ($etat === 'actif') $where[] = 'actif = 1'; elseif ($etat === 'inactif') $where[] = 'actif = 0';
     if ($q !== '') { $where[] = '(nom LIKE ? OR prenom LIKE ?)'; array_push($params, "%$q%", "%$q%"); }
-    $st = db()->prepare('SELECT id_aidant, nom, prenom, telephone, courriel, preference_communication, actif,
-                         (SELECT COUNT(*) FROM lien_beneficiaire_aidant l WHERE l.id_aidant = proche_aidant.id_aidant) AS nb_beneficiaires
-                         FROM proche_aidant' . ($where ? ' WHERE ' . implode(' AND ', $where) : '') . ' ORDER BY nom, prenom LIMIT 500');
-    $st->execute($params);
-    json_out(200, ['ok' => true, 'items' => array_map('vers_front', $st->fetchAll())]);
+    [$page, $taille] = params_page();
+    $ordre = ordre_tri(['nom' => 'nom'], 'nom', 'asc', 'prenom');
+    [$lignes, $meta] = lire_page(
+        'id_aidant, nom, prenom, telephone, courriel, preference_communication, actif,
+         (SELECT COUNT(*) FROM lien_beneficiaire_aidant l WHERE l.id_aidant = proche_aidant.id_aidant) AS nb_beneficiaires',
+        'FROM proche_aidant' . ($where ? ' WHERE ' . implode(' AND ', $where) : ''), $params, $ordre, $page, $taille);
+    json_out(200, ['ok' => true, 'items' => array_map('vers_front', $lignes), 'meta' => $meta]);
 }
 if ($methode === 'POST') {
     [$v, $erreurs] = valider(corps_json(), $REGLES, true);

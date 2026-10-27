@@ -53,12 +53,13 @@ function intervention_vers_front(array $l): array {
         'id_medecin' => isset($l['id_medecin']) ? (int)$l['id_medecin'] : null,
     ];
 }
-const SELECT_INTERVENTION =
-    'SELECT i.*, b.nom AS b_nom, b.prenom AS b_prenom, v.nom AS v_nom, v.prenom AS v_prenom, c.id_compte_rendu
-     FROM intervention i
+const COLONNES_INTERVENTION = 'i.*, b.nom AS b_nom, b.prenom AS b_prenom, v.nom AS v_nom, v.prenom AS v_prenom, c.id_compte_rendu';
+const FROM_INTERVENTION =
+    'FROM intervention i
      JOIN beneficiaire b ON b.id_beneficiaire = i.id_beneficiaire
      JOIN intervenant  v ON v.id_intervenant  = i.id_intervenant
      LEFT JOIN compte_rendu c ON c.id_intervention = i.id_intervention';
+const SELECT_INTERVENTION = 'SELECT ' . COLONNES_INTERVENTION . ' ' . FROM_INTERVENTION;
 
 // Condition SQL « intervention terminée » (hier ou avant, ou aujourd'hui et heure de fin passée) + ses 3 paramètres.
 const SQL_TERMINEE = '(i.date < ? OR (i.date = ? AND i.heure_fin <= ?))';

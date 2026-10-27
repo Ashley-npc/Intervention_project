@@ -13,6 +13,7 @@ require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
 require __DIR__ . '/../includes/disponibilites.php';
 require __DIR__ . '/../includes/referentiels.php';
+require __DIR__ . '/../includes/pagination.php';
 
 $user = exiger_connexion(['coordinateur', 'intervenant']);
 $est_intervenant = $user['role'] === 'intervenant';
@@ -73,6 +74,31 @@ if ($methode === 'GET') {
         if ($cr) $cr['valide_par_coordinateur'] = (bool)$cr['valide_par_coordinateur'];
         $reponse['compte_rendu'] = $cr ?: null;
         json_out(200, $reponse);
+    }
+    // ----- recherche d'interventions (CDC 5.12) : critères combinables, tri, pagination
+    //   ?recherche=1&du=&au=&statut=planifiee|realisee|annulee&type=&id_secteur=&id_beneficiaire=&id_intervenant=&urgente=1&q=&tri=date|beneficiaire|intervenant|statut|type&sens=&page=
+    if (($_GET['recherche'] ?? '') === '1') {
+        $where = []; $params = [];
+        foreach (['du' => 'i.date >= ?', 'au' => 'i.date <= ?'] as $cle => $cond) {
+            $v = (string)($_GET[$cle] ?? '');
+            if ($v === '') continue;
+            $o = DateTime::createFromFormat('!Y-m-d', $v);
+            if (!$o || $o->format('Y-m-d') !== $v) json_out(400, ['ok' => false, 'message' => 'Date invalide.']);
+            $where[] = $cond; $params[] = $v;
+        }
+        if ((string)($_GET['statut'] ?? '') !== '') { $where[] = 'i.statut = ?'; $params[] = (string)$_GET['statut']; }
+        if ((string)($_GET['type'] ?? '') !== '') { $where[] = 'i.type = ?'; $params[] = (string)$_GET['type']; }
+        if (($_GET['urgente'] ?? '') === '1') $where[] = 'i.urgente = 1';
+        if ((int)($_GET['id_secteur'] ?? 0) > 0) { $where[] = 'b.id_secteur = ?'; $params[] = (int)$_GET['id_secteur']; }
+        $f_interv = $est_intervenant ? $mon_id : (int)($_GET['id_intervenant'] ?? 0);
+        if ($f_interv > 0) { $where[] = 'i.id_intervenant = ?'; $params[] = $f_interv; }
+        if (!$est_intervenant && (int)($_GET['id_beneficiaire'] ?? 0) > 0) { $where[] = 'i.id_beneficiaire = ?'; $params[] = (int)$_GET['id_beneficiaire']; }
+        $q = trim((string)($_GET['q'] ?? ''));
+        if ($q !== '') { $where[] = '(b.nom LIKE ? OR b.prenom LIKE ? OR v.nom LIKE ? OR v.prenom LIKE ?)'; array_push($params, "%$q%", "%$q%", "%$q%", "%$q%"); }
+        [$page, $taille] = params_page();
+        $ordre = ordre_tri(['date' => 'i.date', 'beneficiaire' => 'b.nom', 'intervenant' => 'v.nom', 'statut' => 'i.statut', 'type' => 'i.type'], 'date', 'desc', 'i.heure_debut DESC, i.id_intervention DESC');
+        [$lignes, $meta] = lire_page(COLONNES_INTERVENTION, FROM_INTERVENTION . ($where ? ' WHERE ' . implode(' AND ', $where) : ''), $params, $ordre, $page, $taille);
+        json_out(200, ['ok' => true, 'items' => array_map('intervention_vers_front', $lignes), 'meta' => $meta]);
     }
     // ----- planning d'une période (par défaut : la semaine en cours)
     $du = $_GET['du'] ?? date('Y-m-d', strtotime('monday this week'));

@@ -9,6 +9,7 @@ require __DIR__ . '/../includes/journal.php';
 require __DIR__ . '/../includes/notifications.php';
 require __DIR__ . '/../includes/validation.php';
 require __DIR__ . '/../includes/interventions.php';
+require __DIR__ . '/../includes/pagination.php';
 
 $user = exiger_connexion(['coordinateur', 'intervenant']);
 $est_intervenant = $user['role'] === 'intervenant';
@@ -42,16 +43,32 @@ function normaliser(array $d): array { if (isset($d['duree_reelle']) && is_int($
 
 if ($methode === 'GET') {
     if ($est_intervenant) json_out(403, ['ok' => false, 'message' => 'Accès refusé.']);
+    // Filtres combinables : etat (a_valider|sans|tous), du/au, id_intervenant, id_beneficiaire, id_secteur, q ; tri ; pagination.
     $etat = $_GET['etat'] ?? 'a_valider';
-    if ($etat === 'sans') {
-        // Interventions passées, non annulées, sans aucun compte rendu.
-        $st = db()->prepare(SELECT_INTERVENTION . " WHERE c.id_compte_rendu IS NULL AND i.statut NOT IN ('annulee') AND " . SQL_TERMINEE . " ORDER BY i.date DESC, i.heure_debut DESC LIMIT 200");
-        $st->execute(params_terminee());
+    $where = []; $params = [];
+    if ($etat === 'sans') {          // interventions passées, non annulées, sans aucun compte rendu
+        $where[] = "c.id_compte_rendu IS NULL AND i.statut NOT IN ('annulee') AND " . SQL_TERMINEE;
+        $params = params_terminee();
     } else {
-        $filtre = $etat === 'tous' ? '' : ' AND c.valide_par_coordinateur = 0';
-        $st = db()->query(SELECT_INTERVENTION . ' WHERE c.id_compte_rendu IS NOT NULL' . $filtre . ' ORDER BY i.date DESC, i.heure_debut DESC LIMIT 200');
+        $where[] = 'c.id_compte_rendu IS NOT NULL';
+        if ($etat !== 'tous') $where[] = 'c.valide_par_coordinateur = 0';
     }
-    json_out(200, ['ok' => true, 'items' => array_map('intervention_vers_front', $st->fetchAll())]);
+    foreach (['du' => 'i.date >= ?', 'au' => 'i.date <= ?'] as $cle => $cond) {
+        $v = (string)($_GET[$cle] ?? '');
+        if ($v === '') continue;
+        $o = DateTime::createFromFormat('!Y-m-d', $v);
+        if (!$o || $o->format('Y-m-d') !== $v) json_out(400, ['ok' => false, 'message' => 'Date invalide.']);
+        $where[] = $cond; $params[] = $v;
+    }
+    if ((int)($_GET['id_intervenant'] ?? 0) > 0) { $where[] = 'i.id_intervenant = ?'; $params[] = (int)$_GET['id_intervenant']; }
+    if ((int)($_GET['id_beneficiaire'] ?? 0) > 0) { $where[] = 'i.id_beneficiaire = ?'; $params[] = (int)$_GET['id_beneficiaire']; }
+    if ((int)($_GET['id_secteur'] ?? 0) > 0) { $where[] = 'b.id_secteur = ?'; $params[] = (int)$_GET['id_secteur']; }
+    $q = trim((string)($_GET['q'] ?? ''));
+    if ($q !== '') { $where[] = '(b.nom LIKE ? OR b.prenom LIKE ? OR v.nom LIKE ? OR v.prenom LIKE ?)'; array_push($params, "%$q%", "%$q%", "%$q%", "%$q%"); }
+    [$page, $taille] = params_page();
+    $ordre = ordre_tri(['date' => 'i.date', 'beneficiaire' => 'b.nom', 'intervenant' => 'v.nom'], 'date', 'desc', 'i.heure_debut DESC, i.id_intervention DESC');
+    [$lignes, $meta] = lire_page(COLONNES_INTERVENTION, FROM_INTERVENTION . ' WHERE ' . implode(' AND ', $where), $params, $ordre, $page, $taille);
+    json_out(200, ['ok' => true, 'items' => array_map('intervention_vers_front', $lignes), 'meta' => $meta]);
 }
 
 if ($methode === 'POST') {                                       // ----- saisie par l'intervenant
