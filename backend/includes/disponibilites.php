@@ -33,8 +33,12 @@ function hors_disponibilites(int $id_v, string $date, string $debut, string $fin
         if (!(int)$tous->fetchColumn()) return null;
         $st = db()->prepare("SELECT heure_debut, heure_fin FROM disponibilite WHERE id_intervenant = ? AND type = 'disponible' AND jour_ou_date = ?");
         $st->execute([$id_v, JOURS_SEMAINE[jour_semaine($date)]]);
-        foreach ($st->fetchAll() as $c) if (substr($c['heure_debut'], 0, 5) <= $debut && substr($c['heure_fin'], 0, 5) >= $fin) return null;
-        return "n'est pas disponible ce jour-là sur ce créneau ($debut-$fin).";
+        $creneaux = $st->fetchAll();
+        foreach ($creneaux as $c) if (substr($c['heure_debut'], 0, 5) <= $debut && substr($c['heure_fin'], 0, 5) >= $fin) return null;
+        $jour = JOURS_SEMAINE[jour_semaine($date)];
+        if (!$creneaux) return "n'a déclaré aucune disponibilité le $jour (créneau demandé : $debut-$fin).";
+        $liste = array_map(function ($c) { return substr($c['heure_debut'], 0, 5) . '-' . substr($c['heure_fin'], 0, 5); }, $creneaux);
+        return "n'est disponible le $jour que de " . implode(' et de ', $liste) . " (créneau demandé : $debut-$fin ; l'intervention doit tenir entièrement dans un créneau).";
     } catch (Throwable $e) { return null; }
 }
 
