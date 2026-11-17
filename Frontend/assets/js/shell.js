@@ -34,17 +34,35 @@ var Shell = (function () {
     var courant = document.body.getAttribute('data-menu') || document.body.getAttribute('data-ressource') || '', l = liens(user.role), nav = '';
     var GROUPES = { accueil: 'Activité', planning: 'Activité', interventions: 'Activité', 'comptes-rendus': 'Activité', incidents: 'Activité', indicateurs: 'Activité', beneficiaires: 'Personnes', intervenants: 'Personnes', aidants: 'Personnes', medecins: 'Personnes', organismes: 'Gestion', documents: 'Gestion', disponibilites: 'Personnes',
                     factures: 'Gestion', nouvelle: 'Gestion', tarifs: 'Gestion', utilisateurs: 'Système', parametres: 'Système', journal: 'Système' }, ORDRE = ['Activité', 'Personnes', 'Gestion', 'Système'];
+    // Menu en groupes repliables : un bouton par groupe (Activité, Personnes…), ses liens ne s'affichent qu'au clic.
+    // Le groupe de la page en cours est ouvert d'office, pour qu'on voie où l'on est.
+    var SLUG = { 'Activité': 'activite', 'Personnes': 'personnes', 'Gestion': 'gestion', 'Système': 'systeme', 'Compte': 'compte' };
+    var actif = (courant === 'messages' || courant === 'notifications') ? 'Compte' : '';
+    for (var a = 0; a < l.length; a++) if (l[a][2] === courant) actif = GROUPES[l[a][2]] || 'Activité';
+    function groupe(nom, bloc) {
+      var ouvert = nom === actif;
+      return '<div class="nav-groupe" data-g="' + SLUG[nom] + '"><button type="button" class="nav-titre" aria-expanded="' + ouvert + '" aria-controls="ng-' + SLUG[nom] + '">' + nom + '</button>' +
+             '<div class="nav-liste" id="ng-' + SLUG[nom] + '"' + (ouvert ? '' : ' hidden') + '>' + bloc + '</div></div>';
+    }
     for (var g = 0; g < ORDRE.length; g++) {
       var bloc = '';
       for (var i = 0; i < l.length; i++) if ((GROUPES[l[i][2]] || 'Activité') === ORDRE[g]) bloc += '<a href="' + FRONT + l[i][1] + '"' + (l[i][2] === courant ? ' aria-current="page"' : '') + '>' + ico('n_' + l[i][2].replace(/-/g, '_')) + l[i][0] + '</a>';
-      if (bloc) nav += '<span class="group">' + ORDRE[g] + '</span>' + bloc;
+      if (bloc) nav += groupe(ORDRE[g], bloc);
     }
+    nav += groupe('Compte', '<a href="' + FRONT + 'messages/liste.html"' + (courant === 'messages' ? ' aria-current="page"' : '') + '>' + ico('n_messages') + 'Messages</a><a href="' + FRONT + 'notifications/liste.html"' + (courant === 'notifications' ? ' aria-current="page"' : '') + '>' + ico('n_notifications') + 'Notifications</a><a href="' + FRONT + 'auth/mot-de-passe.html">' + ico('n_mdp') + 'Mot de passe</a>');
     document.body.innerHTML =
       '<div class="app"><aside class="sidebar"><div class="brand">' + esc(window.NOM_STRUCTURE || 'Suivi à domicile') + '<small>' + esc(NOMS[user.role] || user.role) + '</small></div>' +
-      '<nav class="nav" aria-label="Menu principal">' + nav + '<span class="group compte">Compte</span><a href="' + FRONT + 'messages/liste.html"' + (courant === 'messages' ? ' aria-current="page"' : '') + '>' + ico('n_messages') + 'Messages</a><a href="' + FRONT + 'notifications/liste.html"' + (courant === 'notifications' ? ' aria-current="page"' : '') + '>' + ico('n_notifications') + 'Notifications</a><a href="' + FRONT + 'auth/mot-de-passe.html">' + ico('n_mdp') + 'Mot de passe</a></nav></aside>' +
+      '<nav class="nav" aria-label="Menu principal">' + nav + '</nav></aside>' +
       '<div class="main"><header class="topbar"><span></span><div class="user"><a class="cloche" id="cloche" href="' + FRONT + 'notifications/liste.html" title="Notifications" aria-label="Notifications">' + ico('cloche') + ' <span class="badge" id="cloche-n" hidden>0</span></a><div class="avatar">' + esc(user.identifiant.slice(0, 2).toUpperCase()) +
       '</div><div class="who">' + esc(user.identifiant) + '<span>' + esc(NOMS[user.role] || user.role) + '</span></div>' +
       '' + btnIco('deconnexion', 'Déconnexion', 'href="' + FRONT + 'auth/login.html" data-logout', 'a') + '</div></header><main class="content" id="contenu"></main></div></div>';
+    // Un clic sur le titre d'un groupe ouvre ou ferme sa liste (un seul écouteur pour tout le menu).
+    document.querySelector('.nav').addEventListener('click', function (e) {
+      var t = e.target.closest ? e.target.closest('.nav-titre') : null; if (!t) return;
+      var ouvre = t.getAttribute('aria-expanded') !== 'true';
+      t.setAttribute('aria-expanded', ouvre ? 'true' : 'false');
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !ouvre;
+    });
     window.initTiroir();
     majCloche(user);
     return document.getElementById('contenu');

@@ -166,5 +166,5 @@ Shell.demarrer(function (contenu, user) {
       var t = document.getElementById("texte");
       if (courant && (!t || !t.value)) fil(courant);
     }
-  }, 10000);
+  }, 30000);
 });
