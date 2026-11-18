@@ -93,29 +93,45 @@ Shell.demarrer(function (contenu, user) {
            '<div class="lg"><span><i class="c-ok"></i>Réalisées <b>' + fait + '</b></span><span><i class="c-rest"></i>Restantes <b>' + (av.total - fait) + '</b></span><span class="muted">sur ' + av.total + ' planifiées</span></div></div>';
   }
 
-  // Planning defilant : 7 jours visibles, celui du milieu est le jour choisi. Les autres jours se chargent au besoin (?du=&au=).
+  // Planning defilant : une piste de 25 jours qui glisse (animation) derriere une fenetre de 7 jours ; le jour du milieu est le jour choisi.
+  // On peut faire glisser a la souris ou au doigt, utiliser la molette / le pave tactile, les fleches du clavier ou les deux boutons.
+  // Les jours non encore connus sont demandes au serveur (?du=&au=), une seule fois, sans boucle en cas d'erreur.
   function planning(contenu, d) {
-    var el = document.getElementById('pl-jours'), jd = document.getElementById('jd'), mois = document.getElementById('pl-mois');
-    var jours = {}, centre = aujourdhui(), echec = false, enCours = false, NOMS = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'], i;
+    var vue = document.getElementById('pl-jours'), jd = document.getElementById('jd'), mois = document.getElementById('pl-mois');
+    var N = 25, MID = 12, jours = {}, centre = aujourdhui(), origine = centre, echec = false, enCours = false, deplace = false, NOMS = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'], i, piste, items;
     for (i = 0; i < d.jours.length; i++) jours[d.jours[i].date] = d.jours[i];
-    function dt(s) { return new Date(s + 'T12:00:00'); }
-    function plus(s, n) { var x = dt(s); x.setDate(x.getDate() + n); return x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2); }
-    function dessiner(focus) {
-      var h = '', k, today = aujourdhui();
-      for (k = -3; k <= 3; k++) {
-        var s = plus(centre, k), j = jours[s], nb = j ? j.nb : null, ab = Math.abs(k);
-        h += '<button type="button" class="jour' + (k === 0 ? ' sel' : '') + (s === today ? ' auj' : '') + (nb === 0 ? ' vide' : '') + (ab === 3 ? ' e1' : ab === 2 ? ' e2' : '') + '" data-d="' + s + '"' + (k === 0 ? ' aria-current="date"' : '') + '>' +
-             '<span>' + NOMS[dt(s).getDay()] + '</span><b>' + s.slice(8, 10) + '</b><i>' + (nb === null ? '·' : nb) + '</i></button>';
+    vue.innerHTML = '<div class="piste"></div>'; piste = vue.firstChild; piste.style.width = (N * 100 / 7) + '%';
+    function dt(x) { return new Date(x + 'T12:00:00'); }
+    function plus(x, n) { var t = dt(x); t.setDate(t.getDate() + n); return t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2) + '-' + ('0' + t.getDate()).slice(-2); }
+    function ecart(a, b) { return Math.round((dt(b) - dt(a)) / 86400000); }
+    function idx() { return ecart(origine, centre) + MID; }
+    function placer(sans) {
+      if (sans) piste.className = 'piste sans';
+      piste.style.transform = 'translateX(' + (-(idx() - 3) * 100 / N) + '%)';
+      if (sans) { piste.offsetWidth; piste.className = 'piste'; }
+    }
+    function maj() {   // met a jour les classes et les chiffres sans reconstruire (c'est ce qui permet la transition)
+      var c = idx(), today = aujourdhui(), k, j, nb, ab, b;
+      for (k = 0; k < items.length; k++) {
+        var s = items[k].getAttribute('data-d'); j = jours[s]; nb = j ? j.nb : null; ab = Math.abs(k - c); b = items[k].firstChild;
+        b.className = 'jour' + (ab === 0 ? ' sel' : '') + (s === today ? ' auj' : '') + (nb === 0 ? ' vide' : '') + (ab === 3 ? ' e1' : ab === 2 ? ' e2' : ab > 3 ? ' hors' : '');
+        b.setAttribute('tabindex', ab <= 3 ? '0' : '-1');
+        if (ab === 0) b.setAttribute('aria-current', 'date'); else b.removeAttribute('aria-current');
+        b.lastChild.textContent = nb === null ? '·' : nb;
       }
-      el.innerHTML = h;
+    }
+    function monter() {   // (re)construit la piste autour de « origine »
+      var h = '', k, s;
+      for (k = 0; k < N; k++) { s = plus(origine, k - MID); h += '<div class="jw" data-d="' + s + '"><button type="button" class="jour" data-d="' + s + '"><span>' + NOMS[dt(s).getDay()] + '</span><b>' + s.slice(8, 10) + '</b><i></i></button></div>'; }
+      piste.innerHTML = h; items = piste.children; maj(); placer(true);
+    }
+    function detail() {
       var t = dateLongue(centre).split(' '), j0 = jours[centre];
       mois.textContent = t[2] + ' ' + t[3];
       jd.innerHTML = '<div><b>' + t[0].charAt(0).toUpperCase() + t[0].slice(1) + ' ' + t[1] + ' ' + t[2] + '</b><span>' + (!j0 ? 'Chargement…' : j0.nb ? 'Première intervention à ' + j0.premiere + ' · Dernière à ' + j0.derniere : 'Aucune intervention ce jour-là') + '</span></div>' +
                     '<span class="puce"><i></i>' + (!j0 ? '…' : j0.nb ? j0.nb + ' intervention' + (j0.nb > 1 ? 's planifiées' : ' planifiée') : 'Libre') + '</span>';
-      if (focus) el.querySelector('.sel').focus();
-      charger();
+      jd.className = 'jour-detail'; jd.offsetWidth; jd.className = 'jour-detail anim';
     }
-    // Il manque des jours autour du jour choisi : on les demande au serveur (une seule fois, sans boucle en cas d'erreur).
     function charger() {
       if (echec || enCours) return;
       var manque = false, k;
@@ -126,18 +142,59 @@ Shell.demarrer(function (contenu, user) {
         enCours = false;
         if (!r.ok) { echec = true; return; }
         for (var q = 0; q < r.data.jours.length; q++) jours[r.data.jours[q].date] = r.data.jours[q];
-        dessiner(false);
+        maj(); detail();
       });
     }
-    function aller(s, focus) { centre = s; dessiner(focus); }
-    el.addEventListener('click', function (e) { var b = e.target.closest ? e.target.closest('.jour') : null; if (b) aller(b.getAttribute('data-d'), true); });
-    el.addEventListener('keydown', function (e) {
+    function aller(x, focus) {
+      if (x === centre) { placer(false); return; }
+      if (Math.abs(idx() + ecart(centre, x) - MID) > 9) { origine = centre; monter(); }   // on recentre la piste avant de glisser (identique a l'ecran)
+      centre = x; maj(); placer(false); detail(); charger();
+      if (focus) { var b = piste.children[idx()].firstChild; if (b.focus) b.focus({ preventScroll: true }); vue.scrollLeft = 0; }
+    }
+    // Clic sur un jour
+    vue.addEventListener('click', function (e) {
+      if (deplace) { deplace = false; return; }
+      var b = e.target.closest ? e.target.closest('.jour') : null; if (b) aller(b.getAttribute('data-d'), true);
+    });
+    vue.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowLeft') { e.preventDefault(); aller(plus(centre, -1), true); }
       if (e.key === 'ArrowRight') { e.preventDefault(); aller(plus(centre, 1), true); }
     });
+    // Molette / pave tactile (defilement horizontal) : un jour par cran, avec un petit delai pour garder la fluidite
+    var derniereRoue = 0;
+    vue.addEventListener('wheel', function (e) {
+      var dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+      if (!dx) return;
+      e.preventDefault();
+      var t = new Date().getTime(); if (t - derniereRoue < 140) return; derniereRoue = t;
+      aller(plus(centre, dx > 0 ? 1 : -1), false);
+    }, { passive: false });
+    // Glisser (souris ou doigt) : la piste suit le pointeur, puis se cale sur le jour le plus proche
+    var x0 = null, base = 0, largeur = 1;
+    vue.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      x0 = e.clientX; largeur = vue.clientWidth / 7; base = -(idx() - 3) * largeur; deplace = false;
+    });
+    vue.addEventListener('pointermove', function (e) {
+      if (x0 === null) return;
+      var dx = e.clientX - x0;
+      if (!deplace && Math.abs(dx) > 6) { deplace = true; piste.className = 'piste sans'; vue.className += ' prise'; if (vue.setPointerCapture) { try { vue.setPointerCapture(e.pointerId); } catch (err) {} } }
+      if (deplace) piste.style.transform = 'translateX(' + (base + dx) + 'px)';
+    });
+    function lacher(e) {
+      if (x0 === null) return;
+      var dx = e.clientX - x0; x0 = null;
+      vue.className = vue.className.replace(' prise', '');
+      if (!deplace) return;
+      piste.className = 'piste';
+      var n = -Math.round(dx / largeur); piste.style.transform = 'translateX(' + (base) + 'px)'; piste.offsetWidth;
+      if (n === 0) { placer(false); } else aller(plus(centre, n), false);
+      setTimeout(function () { deplace = false; }, 0);
+    }
+    vue.addEventListener('pointerup', lacher); vue.addEventListener('pointercancel', lacher);
     document.getElementById('pl-g').addEventListener('click', function () { aller(plus(centre, -1), false); });
     document.getElementById('pl-d').addEventListener('click', function () { aller(plus(centre, 1), false); });
-    dessiner(false);
+    monter(); detail(); charger();
   }
 
   // Charge des intervenants : barres (total de la semaine) ou graphique (heures par jour, une courbe par intervenant).

@@ -680,7 +680,7 @@ a.tuile:hover { box-shadow: 0 2px 8px rgba(31, 45, 58, .12); }
 .rech-res a:hover, .rech-res a.on { background: var(--soft); }
 .rech-res .vide { margin: 0; padding: 14px 10px; color: var(--muted); font-size: 14px; }
 
-.barre { display: flex; flex-wrap: wrap; align-items: center; gap: 3%; padding: 1%;; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.barre { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
 .barre .tt { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
 .pz { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 14px; color: var(--ink); background: #f1f3f5; border: 1px solid transparent; text-decoration: none; }
 .pz b { font-size: 15px; font-variant-numeric: tabular-nums; }
@@ -746,3 +746,18 @@ body[data-groupe="compte"] { --ga: #1d7a4b; --gb: #f7fbf9; }
 .content .avis li { border: 1px solid var(--ga, var(--line)); border-radius: 10px; padding: 10px 12px; list-style: none; }
 .kpi.t-danger b { color: #8c1d17; }
 #res > .card + .card, #res > .kpis + .card, #res > .muted + .card { margin-top: 16px; }
+
+/* Planning defilant anime : fenetre de 7 jours, piste de 25 jours qui glisse */
+.bande { overflow: hidden; border-radius: 12px; }
+.bande .jours { display: block; overflow: hidden; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; padding: 4px 0; }
+.bande .jours.prise { cursor: grabbing; }
+.bande .piste { display: flex; transition: transform .42s cubic-bezier(.22, .8, .3, 1); will-change: transform; }
+.bande .piste.sans { transition: none; }
+.bande .jw { flex: 0 0 calc(100% / 25); box-sizing: border-box; padding: 0 5px; }
+.bande .jw .jour { width: 100%; transition: opacity .35s ease, background-color .25s ease, border-color .25s ease, transform .35s cubic-bezier(.22, .8, .3, 1), box-shadow .25s ease; }
+.bande .jw .jour.sel { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(31, 111, 139, .18); }
+.bande .jw .jour.hors { opacity: 0; pointer-events: none; }
+.jour-detail.anim { animation: apparait .38s ease both; }
+@keyframes apparait { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (max-width: 820px) { .bande .jw { padding: 0 3px; } }
+@media (prefers-reduced-motion: reduce) { .bande .piste, .bande .jw .jour { transition: none; } .jour-detail.anim { animation: none; } }
