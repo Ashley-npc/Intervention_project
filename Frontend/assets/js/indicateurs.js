@@ -45,7 +45,7 @@ Shell.demarrer(function (contenu, user) {
       kpi(pct(cr.taux_saisie), 'Comptes rendus saisis', 'ok') + kpi(pct(cr.taux_validation), 'Comptes rendus validés', 'ok') + '</section>' +
       '<p class="muted">' + (gr ? 'Gravité : ' + gr + '. ' : '') + cr.sans + ' intervention(s) échue(s) sans compte rendu, ' + cr.a_valider + ' compte(s) rendu(s) à valider.</p>';
     var sa = d.satisfaction;
-    h += '<h2 class="sect s-brand">Satisfaction des bénéficiaires</h2><section class="kpis">' + kpi(sa.moyenne === null ? 'n/a' : num(sa.moyenne, ' / 5'), 'Note moyenne', 'brand') + kpi(sa.nb_avis, 'Avis reçus', 'brand') +
+    if (sa) h += '<h2 class="sect s-brand">Satisfaction des bénéficiaires</h2><section class="kpis">' + kpi(sa.moyenne === null ? 'n/a' : num(sa.moyenne, ' / 5'), 'Note moyenne', 'brand') + kpi(sa.nb_avis, 'Avis reçus', 'brand') +
       kpi(pct(sa.taux_reponse), 'Visites notées', 'brand') + kpi(sa.notes_basses, 'Notes de 2 ou moins', 'brand') + '</section>' +
       '<p class="muted">Répartition des notes : ' + [5, 4, 3, 2, 1].map(function (n) { return n + ' : ' + sa.repartition[n]; }).join(' · ') + '. Visites notées = avis reçus ÷ visites réalisées de la période.</p>' +
       '<section class="card t-warn"><header><h2>Derniers commentaires</h2></header><div id="avis"><p class="empty">Chargement…</p></div></section>';
