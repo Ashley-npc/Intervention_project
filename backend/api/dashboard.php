@@ -62,19 +62,42 @@ if ($user['role'] === 'administrateur') {
     ], 'par_role' => $par_role, 'actions' => $actions]);
 }
 
+// Nombre d'interventions par jour entre deux dates (incluses), avec première et dernière heure du jour.
+function jours_entre(string $du, string $au): array {
+    $st = db()->prepare("SELECT date, COUNT(*) AS nb, MIN(heure_debut) AS premiere, MAX(heure_fin) AS derniere FROM intervention WHERE date BETWEEN ? AND ? AND statut NOT IN ('annulee') GROUP BY date");
+    $st->execute([$du, $au]);
+    $par_jour = [];
+    foreach ($st->fetchAll() as $l) $par_jour[$l['date']] = ['nb' => (int)$l['nb'], 'premiere' => substr((string)$l['premiere'], 0, 5), 'derniere' => substr((string)$l['derniere'], 0, 5)];
+    $jours = [];
+    for ($d = $du; $d <= $au; $d = date('Y-m-d', strtotime("$d +1 day"))) $jours[] = ['date' => $d, 'nb' => $par_jour[$d]['nb'] ?? 0, 'premiere' => $par_jour[$d]['premiere'] ?? null, 'derniere' => $par_jour[$d]['derniere'] ?? null];
+    return $jours;
+}
+
+// Défilement du planning : ?du=AAAA-MM-JJ&au=AAAA-MM-JJ renvoie seulement ces jours (62 jours au plus).
+if (isset($_GET['du'], $_GET['au'])) {
+    $du = (string)$_GET['du']; $au = (string)$_GET['au'];
+    $ok = preg_match('/^\d{4}-\d{2}-\d{2}$/', $du) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $au) && strtotime($du) !== false && strtotime($au) !== false
+          && $du <= $au && (strtotime($au) - strtotime($du)) <= 62 * 86400;
+    if (!$ok) json_out(422, ['ok' => false, 'message' => 'Période invalide.']);
+    json_out(200, ['ok' => true, 'jours' => jours_entre($du, $au)]);
+}
+
 // Coordinateur, qualité, direction : vue d'ensemble.
 $st = db()->prepare(SELECT_INTERVENTION . " WHERE i.date = ? AND i.$pas_annulee ORDER BY i.heure_debut");
 $st->execute([$aujourdhui]);
 $jour = array_map('intervention_vers_front', $st->fetchAll());
 
-$st = db()->prepare("SELECT v.id_intervenant, v.nom, v.prenom, i.heure_debut, i.heure_fin FROM intervention i JOIN intervenant v ON v.id_intervenant = i.id_intervenant
+// Charge de la semaine : minutes par intervenant, et minutes par jour (lundi = 0 ... dimanche = 6) pour le graphique.
+$st = db()->prepare("SELECT v.id_intervenant, v.nom, v.prenom, i.date, i.heure_debut, i.heure_fin FROM intervention i JOIN intervenant v ON v.id_intervenant = i.id_intervenant
                      WHERE i.date BETWEEN ? AND ? AND i.$pas_annulee");
 $st->execute([$lundi, $dimanche]);
 $charge = [];
 foreach ($st->fetchAll() as $l) {
     $k = (int)$l['id_intervenant'];
-    if (!isset($charge[$k])) $charge[$k] = ['nom' => $l['prenom'] . ' ' . $l['nom'], 'minutes' => 0];
-    $charge[$k]['minutes'] += minutes($l['heure_debut'], $l['heure_fin']);
+    if (!isset($charge[$k])) $charge[$k] = ['nom' => $l['prenom'] . ' ' . $l['nom'], 'minutes' => 0, 'par_jour' => [0, 0, 0, 0, 0, 0, 0]];
+    $m = minutes($l['heure_debut'], $l['heure_fin']);
+    $charge[$k]['minutes'] += $m;
+    $charge[$k]['par_jour'][(int)round((strtotime($l['date']) - strtotime($lundi)) / 86400)] += $m;
 }
 usort($charge, function ($a, $b) { return $b['minutes'] <=> $a['minutes']; });
 
@@ -98,18 +121,19 @@ $kpis = [
     })(),
     'urgentes'      => un("SELECT COUNT(*) FROM intervention WHERE urgente = 1 AND date >= ? AND $pas_annulee", [$aujourdhui]),
 ];
-// Planning de la semaine : nombre d'interventions par jour (lundi -> dimanche).
-$st = db()->prepare("SELECT date, COUNT(*) AS nb, MIN(heure_debut) AS premiere, MAX(heure_fin) AS derniere FROM intervention WHERE date BETWEEN ? AND ? AND $pas_annulee GROUP BY date");
-$st->execute([$lundi, $dimanche]);
-$par_jour = [];
-foreach ($st->fetchAll() as $l) $par_jour[$l['date']] = ['nb' => (int)$l['nb'], 'premiere' => substr((string)$l['premiere'], 0, 5), 'derniere' => substr((string)$l['derniere'], 0, 5)];
-$jours = [];
-for ($n = 0; $n < 7; $n++) { $d = date('Y-m-d', strtotime("$lundi +$n day")); $jours[] = ['date' => $d, 'nb' => $par_jour[$d]['nb'] ?? 0, 'premiere' => $par_jour[$d]['premiere'] ?? null, 'derniere' => $par_jour[$d]['derniere'] ?? null]; }
+// Planning : nombre d'interventions par jour, autour d'aujourd'hui (10 jours avant, 10 jours après). Le front redemande d'autres jours en défilant (?du=...&au=...).
+$jours = jours_entre(date('Y-m-d', strtotime('-10 days')), date('Y-m-d', strtotime('+10 days')));
+
+// Avancement de la semaine : part des interventions planifiées (non annulées) déjà réalisées.
+$avancement = [
+    'total'     => un("SELECT COUNT(*) FROM intervention WHERE date BETWEEN ? AND ? AND $pas_annulee", [$lundi, $dimanche]),
+    'realisees' => un("SELECT COUNT(*) FROM intervention WHERE date BETWEEN ? AND ? AND statut = 'realisee'", [$lundi, $dimanche]),
+];
 
 // Prochaine intervention urgente (a partir d'aujourd'hui).
 $st = db()->prepare(SELECT_INTERVENTION . " WHERE i.urgente = 1 AND i.date >= ? AND i.$pas_annulee ORDER BY i.date, i.heure_debut LIMIT 1");
 $st->execute([$aujourdhui]);
 $urgence = $st->fetch();
 
-json_out(200, ['ok' => true, 'role' => $user['role'], 'kpis' => $kpis, 'aujourdhui' => $jour, 'charge' => $charge, 'jours' => $jours,
+json_out(200, ['ok' => true, 'role' => $user['role'], 'kpis' => $kpis, 'aujourdhui' => $jour, 'charge' => $charge, 'jours' => $jours, 'avancement' => $avancement, 'lundi' => $lundi,
                'prochaine_urgence' => $urgence ? intervention_vers_front($urgence) : null]);

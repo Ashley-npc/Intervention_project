@@ -30,6 +30,58 @@ var Shell = (function () {
       n.className = 'badge ' + (r.data.critiques ? 'danger' : 'warn');
     });
   }
+  // Recherche rapide (barre du haut) : les roles qui ont au moins une liste a chercher (voir api/recherche.php).
+  var RECH_ROLES = ['coordinateur', 'intervenant', 'administrateur', 'facturation', 'direction'];
+  function rechercheHtml() {
+    var court = window.innerWidth <= 820;
+    return '<form class="rech" role="search" autocomplete="off"><input type="search" id="rech-q" placeholder="' + (court ? 'Rechercher…' : 'Rechercher un nom, un dossier, une facture…') + '" aria-label="Recherche" aria-controls="rech-res" aria-expanded="false" maxlength="60">' +
+           '<kbd aria-hidden="true">/</kbd><button type="submit" aria-label="Rechercher"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>' +
+           '<div class="rech-res" id="rech-res" role="listbox" aria-label="Résultats" hidden></div></form>';
+  }
+  function brancherRecherche() {
+    var form = document.querySelector('.rech'), champ = document.getElementById('rech-q'), zone = document.getElementById('rech-res'), minuteur = null, numero = 0, actif = -1;
+    function fermer() { zone.hidden = true; champ.setAttribute('aria-expanded', 'false'); actif = -1; }
+    function liens() { return zone.querySelectorAll('a'); }
+    function marquer(n) {
+      var ls = liens(); if (!ls.length) return;
+      actif = (n + ls.length) % ls.length;
+      for (var i = 0; i < ls.length; i++) ls[i].className = i === actif ? 'on' : '';
+      ls[actif].scrollIntoView && ls[actif].scrollIntoView({ block: 'nearest' });
+    }
+    function afficher(groupes, q) {
+      var h = '';
+      for (var g = 0; g < groupes.length; g++) {
+        h += '<div class="rg"><p>' + esc(groupes[g].titre) + '</p>';
+        for (var i = 0; i < groupes[g].items.length; i++) { var x = groupes[g].items[i]; h += '<a role="option" href="' + FRONT + x.lien + '"><b>' + esc(x.titre) + '</b><span>' + esc(x.sous) + '</span></a>'; }
+        h += '</div>';
+      }
+      zone.innerHTML = h || '<p class="vide">Aucun résultat pour « ' + esc(q) + ' ».</p>';
+      zone.hidden = false; champ.setAttribute('aria-expanded', 'true'); actif = -1;
+    }
+    function chercher() {
+      var q = champ.value.replace(/^\s+|\s+$/g, '');
+      if (q.length < 2) { fermer(); return; }
+      var mon = ++numero;   // une reponse plus ancienne que la derniere frappe est ignoree
+      appel('recherche.php?q=' + encodeURIComponent(q)).then(function (r) { if (mon === numero && r.ok) afficher(r.data.groupes, q); });
+    }
+    champ.addEventListener('input', function () { clearTimeout(minuteur); minuteur = setTimeout(chercher, 250); });
+    champ.addEventListener('focus', function () { if (champ.value.length >= 2 && zone.innerHTML) zone.hidden = false; });
+    champ.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); marquer(actif + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); marquer(actif - 1); }
+      else if (e.key === 'Escape') { fermer(); champ.blur(); }
+    });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var ls = liens(); if (!ls.length) { clearTimeout(minuteur); chercher(); return; }
+      window.location.href = ls[actif >= 0 ? actif : 0].href;
+    });
+    document.addEventListener('click', function (e) { if (!form.contains(e.target)) fermer(); });
+    document.addEventListener('keydown', function (e) {   // « / » place le curseur dans la recherche (sauf quand on ecrit deja ailleurs)
+      var t = e.target && e.target.tagName;
+      if (e.key === '/' && t !== 'INPUT' && t !== 'TEXTAREA' && t !== 'SELECT') { e.preventDefault(); champ.focus(); }
+    });
+  }
   function coque(user) {
     var courant = document.body.getAttribute('data-menu') || document.body.getAttribute('data-ressource') || '', l = liens(user.role), nav = '';
     var GROUPES = { accueil: 'Activité', planning: 'Activité', interventions: 'Activité', 'comptes-rendus': 'Activité', incidents: 'Activité', indicateurs: 'Activité', beneficiaires: 'Personnes', intervenants: 'Personnes', aidants: 'Personnes', medecins: 'Personnes', organismes: 'Gestion', documents: 'Gestion', disponibilites: 'Personnes',
@@ -53,9 +105,11 @@ var Shell = (function () {
     document.body.innerHTML =
       '<div class="app"><aside class="sidebar"><div class="brand">' + esc(window.NOM_STRUCTURE || 'Suivi à domicile') + '<small>' + esc(NOMS[user.role] || user.role) + '</small></div>' +
       '<nav class="nav" aria-label="Menu principal">' + nav + '</nav></aside>' +
-      '<div class="main"><header class="topbar"><span></span><div class="user"><a class="cloche" id="cloche" href="' + FRONT + 'notifications/liste.html" title="Notifications" aria-label="Notifications">' + ico('cloche') + ' <span class="badge" id="cloche-n" hidden>0</span></a><div class="avatar">' + esc(user.identifiant.slice(0, 2).toUpperCase()) +
+      '<div class="main"><header class="topbar">' + (RECH_ROLES.indexOf(user.role) >= 0 ? rechercheHtml() : '<span></span>') + '<div class="user"><a class="cloche" id="cloche" href="' + FRONT + 'notifications/liste.html" title="Notifications" aria-label="Notifications">' + ico('cloche') + ' <span class="badge" id="cloche-n" hidden>0</span></a><div class="avatar">' + esc(user.identifiant.slice(0, 2).toUpperCase()) +
       '</div><div class="who">' + esc(user.identifiant) + '<span>' + esc(NOMS[user.role] || user.role) + '</span></div>' +
       '' + btnIco('deconnexion', 'Déconnexion', 'href="' + FRONT + 'auth/login.html" data-logout', 'a') + '</div></header><main class="content" id="contenu"></main></div></div>';
+    document.body.setAttribute('data-groupe', SLUG[actif || 'Activité']);   // couleur de la section (cartes des pages)
+    if (RECH_ROLES.indexOf(user.role) >= 0) brancherRecherche();
     // Un clic sur le titre d'un groupe ouvre ou ferme sa liste (un seul écouteur pour tout le menu).
     document.querySelector('.nav').addEventListener('click', function (e) {
       var t = e.target.closest ? e.target.closest('.nav-titre') : null; if (!t) return;
