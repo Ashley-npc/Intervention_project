@@ -1,0 +1,91 @@
+SAUVEGARDE ET RESTAURATION - Suivi à domicile
+==============================================
+
+Ce dossier contient trois fichiers (rien à installer, il faut seulement PHP et mysqldump, déjà présents avec XAMPP) :
+  sauvegarder.sh   fait une sauvegarde complète (base de données + documents déposés)
+  restaurer.sh     restaure une sauvegarde, ou la TESTE sans toucher à la vraie base
+  commun.sh        réglages communs (ne se lance pas seul)
+
+Les scripts lisent eux-mêmes la base, l'utilisateur et le mot de passe dans backend/config.php.
+
+1. PREMIÈRE FOIS
+----------------
+Ouvre un terminal dans le dossier du projet :
+
+    cd chemin/vers/suivi/sauvegarde
+    chmod +x *.sh              (une seule fois : rend les scripts lançables)
+    ./sauvegarder.sh
+
+Si XAMPP n'est pas démarré (MySQL/MariaDB arrêté), le script s'arrête avec un message d'erreur : démarre-le d'abord.
+
+Résultat : un dossier daté est créé dans  ~/sauvegardes-suivi/  (par exemple 2026-11-19_0200) avec :
+  base.sql.gz        toute la base de données, compressée
+  documents.tar.gz   les documents déposés (backend/stockage)
+  SHA256SUMS         les empreintes, pour vérifier que rien n'est abîmé
+  info.txt           date, nombre de tables, version de l'outil
+Le journal de toutes les opérations est dans  ~/sauvegardes-suivi/sauvegarde.log
+
+Les sauvegardes sont rangées HORS du site, volontairement : elles contiennent des données personnelles
+(RGPD) et ne doivent jamais être téléchargeables depuis le navigateur.
+
+2. SAUVEGARDE AUTOMATIQUE CHAQUE NUIT (CDC 6.9)
+-----------------------------------------------
+Tape  crontab -e  et ajoute cette ligne (remplace le chemin) :
+
+    0 2 * * * /chemin/complet/vers/suivi/sauvegarde/sauvegarder.sh >> $HOME/sauvegardes-suivi/cron.log 2>&1
+
+Elle lance la sauvegarde tous les jours à 2 h du matin. L'ordinateur (ou le serveur) doit être allumé et
+MariaDB démarré à cette heure-là : choisis une heure où c'est le cas.
+
+Conservation : les sauvegardes de plus de 30 jours sont supprimées automatiquement, mais jamais si cela laisse
+moins de 3 sauvegardes. Pour changer la durée :  JOURS_CONSERVATION=90 ./sauvegarder.sh
+(ou mets  JOURS_CONSERVATION=90  devant la commande dans le crontab).
+
+3. TESTER UNE RESTAURATION (à faire régulièrement : CDC 6.9 et 9.2)
+-------------------------------------------------------------------
+    ./restaurer.sh --test
+
+Le script vérifie les empreintes, recharge la dernière sauvegarde dans une base TEMPORAIRE
+(intervention_test_restauration), compare le nombre de lignes de chaque table avec la vraie base, puis supprime
+la base temporaire. La vraie base n'est jamais modifiée. Une différence de nombre de lignes est normale si des
+données ont été saisies depuis la sauvegarde.
+Pour tester une sauvegarde précise :  ./restaurer.sh --test ~/sauvegardes-suivi/2026-11-19_0200
+
+4. RESTAURER POUR DE VRAI (en cas de panne ou de perte de données)
+------------------------------------------------------------------
+    ./restaurer.sh                       (dernière sauvegarde)
+    ./restaurer.sh ~/sauvegardes-suivi/2026-11-19_0200    (une sauvegarde précise)
+
+Le script :
+  1. vérifie que la sauvegarde n'est pas abîmée ;
+  2. te demande de taper RESTAURER (tout autre mot annule) ;
+  3. fait d'abord une copie de sécurité de la base actuelle (fichier avant-restauration_...sql.gz) ;
+  4. remplace la base par la sauvegarde ;
+  5. te propose de restaurer aussi les documents (l'ancien dossier est conservé sous le nom stockage.avant-restauration-...).
+Tout ce qui a été saisi après la sauvegarde est perdu : c'est pourquoi la copie de sécurité est faite avant.
+
+5. COPIE HORS DE L'ORDINATEUR (fortement conseillé)
+---------------------------------------------------
+Une sauvegarde sur le même disque ne protège pas d'une panne du disque. Copie régulièrement le dossier
+~/sauvegardes-suivi sur un disque externe ou un autre serveur, par exemple :
+
+    rsync -a ~/sauvegardes-suivi/ /media/disque-externe/sauvegardes-suivi/
+
+Les sauvegardes contiennent des données de santé et personnelles : garde-les sur un support sécurisé
+(accès restreint, de préférence chiffré).
+
+6. RÉGLAGES POSSIBLES (devant la commande)
+------------------------------------------
+  DOSSIER_SAUVEGARDES=/autre/dossier   où ranger les sauvegardes (défaut : ~/sauvegardes-suivi)
+  JOURS_CONSERVATION=30                durée de conservation en jours
+  DB_HOTE=localhost DB_SOCKET=/chemin/mysql.sock   pour se connecter par socket au lieu de 127.0.0.1
+
+Exemple :  DOSSIER_SAUVEGARDES=/media/disque/suivi JOURS_CONSERVATION=60 ./sauvegarder.sh
+
+7. EN CAS DE PROBLÈME
+---------------------
+"mysqldump est introuvable"   XAMPP : les programmes sont dans /opt/lampp/bin (le script les cherche déjà là).
+                              Sinon, ajoute ce dossier au PATH.
+"Access denied"               vérifie l'utilisateur et le mot de passe dans backend/config.php.
+"Can't connect"               MariaDB n'est pas démarré (XAMPP : sudo /opt/lampp/lampp start).
+"Permission denied" au lancement   fais  chmod +x *.sh  ou lance avec  bash sauvegarder.sh
