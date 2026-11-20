@@ -164,11 +164,80 @@ if ($role === 'direction') {
     ];
 }
 
+// ---------- Satisfaction : notes de 1 à 5 données par les bénéficiaires aux visites de la période
+$ws = 'i.date BETWEEN ? AND ? AND e.note IS NOT NULL'; $ps = [$du, $au];
+if ($id_secteur) { $ws .= ' AND b.id_secteur = ?'; $ps[] = $id_secteur; }
+if ($id_interv)  { $ws .= ' AND e.id_intervenant = ?'; $ps[] = $id_interv; }
+try {
+    $sat = lignes("SELECT e.note, COUNT(*) AS nb FROM evaluation e JOIN intervention i ON i.id_intervention = e.id_intervention
+        JOIN beneficiaire b ON b.id_beneficiaire = i.id_beneficiaire WHERE $ws GROUP BY e.note", $ps);
+} catch (Throwable $e) { $sat = []; }   // ajout-satisfaction.sql pas encore lancé : aucun avis
+$sat_nb = 0; $sat_somme = 0; $sat_rep = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
+foreach ($sat as $s) { $n = (int)$s['note']; if ($n >= 1 && $n <= 5) { $sat_rep[$n] = (int)$s['nb']; $sat_nb += (int)$s['nb']; $sat_somme += $n * (int)$s['nb']; } }
+$satisfaction = [
+    'nb_avis' => $sat_nb, 'moyenne' => $sat_nb ? round($sat_somme / $sat_nb, 1) : null,
+    'taux_reponse' => $nb['realisees'] ? round(100 * $sat_nb / $nb['realisees'], 1) : null,
+    'notes_basses' => $sat_rep[1] + $sat_rep[2],
+    'repartition' => $sat_rep,
+];
+
+// ---------- Comparaison : la période précédente (même durée, juste avant) et la série par semaine (ou par mois si la période est longue)
+function periode_precedente(string $du, int $nb_jours, int $id_secteur, int $id_interv, int $nb_actifs, string $aujourdhui, string $maintenant): ?array {
+    try {
+        $pdu = date('Y-m-d', strtotime($du . ' -' . $nb_jours . ' days')); $pau = date('Y-m-d', strtotime($du . ' -1 day'));
+        $cond = 'i.date BETWEEN ? AND ?'; $par = [$pdu, $pau];
+        if ($id_secteur) { $cond .= ' AND b.id_secteur = ?'; $par[] = $id_secteur; }
+        if ($id_interv)  { $cond .= ' AND i.id_intervenant = ?'; $par[] = $id_interv; }
+        $r = 0; $an = 0; $nr = 0;
+        foreach (lignes("SELECT i.date, i.heure_fin, i.statut FROM intervention i JOIN beneficiaire b ON b.id_beneficiaire = i.id_beneficiaire WHERE $cond", $par) as $x) {
+            if (est_annulee($x['statut'])) { $an++; continue; }
+            if ($x['statut'] === 'realisee') $r++;
+            elseif ($x['date'] < $aujourdhui || ($x['date'] === $aujourdhui && $x['heure_fin'] <= $maintenant)) $nr++;
+        }
+        $ca = 'a.annulee = 0 AND a.id_intervenant IS NOT NULL AND a.date_debut <= ? AND a.date_fin >= ?'; $pa = [$pau, $pdu];
+        if ($id_interv)  { $ca .= ' AND a.id_intervenant = ?'; $pa[] = $id_interv; }
+        if ($id_secteur) { $ca .= ' AND a.id_intervenant IN (SELECT id_intervenant FROM secteur_intervenant WHERE id_secteur = ?)'; $pa[] = $id_secteur; }
+        $jours = 0;
+        foreach (lignes("SELECT a.date_debut, a.date_fin FROM absence a WHERE $ca", $pa) as $x) {
+            $d1 = max(substr($x['date_debut'], 0, 10), $pdu); $d2 = min(substr($x['date_fin'], 0, 10), $pau);
+            $jours += max(0, jours_entre($d1, $d2) + 1);
+        }
+        $cd = 'b.date_creation >= ? AND b.date_creation <= ?'; $pd = [$pdu, $pau . ' 23:59:59'];
+        if ($id_secteur) { $cd .= ' AND b.id_secteur = ?'; $pd[] = $id_secteur; }
+        $somme = 0; $n = 0;
+        foreach (lignes("SELECT b.date_creation, (SELECT MIN(i.date) FROM intervention i WHERE i.id_beneficiaire = b.id_beneficiaire AND i.statut NOT IN ('annulee')) AS premiere FROM beneficiaire b WHERE $cd", $pd) as $x) {
+            if ($x['premiere'] === null) continue;
+            $somme += max(0, jours_entre(substr($x['date_creation'], 0, 10), $x['premiere'])); $n++;
+        }
+        return ['du' => $pdu, 'au' => $pau, 'realisees' => $r, 'taux_realisation' => taux($r, $r + $an + $nr),
+                'taux_absenteisme' => taux($jours, $nb_actifs * $nb_jours), 'delai_moyen_jours' => $n ? round($somme / $n, 1) : null];
+    } catch (Throwable $e) { return null; }
+}
+function serie_interventions(array $interventions, string $du, string $au, int $nb_jours): array {
+    $mois = $nb_jours > 93; $cases = [];
+    if ($mois) {
+        $d = new DateTime(substr($du, 0, 7) . '-01'); $fin = new DateTime($au);
+        while ($d <= $fin) { $cases[$d->format('Y-m')] = ['libelle' => $d->format('m/Y'), 'realisees' => 0, 'annulees' => 0]; $d->modify('+1 month'); }
+    } else {
+        $d = new DateTime($du); $d->modify('monday this week'); $fin = new DateTime($au);
+        while ($d <= $fin) { $cases[$d->format('Y-m-d')] = ['libelle' => $d->format('d/m'), 'realisees' => 0, 'annulees' => 0]; $d->modify('+7 days'); }
+    }
+    foreach ($interventions as $i) {
+        if ($mois) $k = substr($i['date'], 0, 7);
+        else { $x = new DateTime($i['date']); $x->modify('monday this week'); $k = $x->format('Y-m-d'); }
+        if (!isset($cases[$k])) continue;
+        if (est_annulee($i['statut'])) $cases[$k]['annulees']++; elseif ($i['statut'] === 'realisee') $cases[$k]['realisees']++;
+    }
+    return array_values($cases);
+}
+$precedent = periode_precedente($du, $nb_jours, $id_secteur, $id_interv, $nb_actifs, $aujourdhui, $maintenant);
+$serie = serie_interventions($interventions, $du, $au, $nb_jours);
+
 $resultat = [
     'ok' => true, 'role' => $role, 'du' => $du, 'au' => $au, 'nb_jours' => $nb_jours,
     'activite' => $activite, 'absenteisme' => $absenteisme, 'delais' => $delais, 'qualite' => $qualite, 'couts' => $couts,
     'par_type' => array_values($par_type), 'par_intervenant' => $liste_interv,
-    'satisfaction' => null,
+    'satisfaction' => $satisfaction, 'precedent' => $precedent, 'serie' => $serie, 'serie_par' => $nb_jours > 93 ? 'mois' : 'semaine',
 ];
 
 if (($_GET['export'] ?? '') === 'csv') {
@@ -189,6 +258,8 @@ if (($_GET['export'] ?? '') === 'csv') {
         ['Comptes rendus saisis (taux)', $pct($qualite['comptes_rendus']['taux_saisie'])], ['Comptes rendus validés (taux)', $pct($qualite['comptes_rendus']['taux_validation'])],
         ['Interventions échues sans compte rendu', $cr['sans']]);
     foreach ($inc['par_gravite'] as $g) $l[] = ['Incidents - gravité ' . $g['gravite'], $g['nb']];
+    array_push($l, ['Satisfaction : nombre d\'avis', $satisfaction['nb_avis']], ['Satisfaction : note moyenne (sur 5)', $num($satisfaction['moyenne'])],
+        ['Satisfaction : taux de réponse', $pct($satisfaction['taux_reponse'])], ['Satisfaction : notes de 2 ou moins', $satisfaction['notes_basses']]);
     if ($couts) array_push($l,
         ['Factures émises', $couts['nb_factures']], ['Montant facturé', $num($couts['facture'])], ['dont part des organismes', $num($couts['part_organismes'])],
         ['dont reste à charge bénéficiaires', $num($couts['reste_a_charge_beneficiaires'])], ['Montant encaissé', $num($couts['encaisse'])],

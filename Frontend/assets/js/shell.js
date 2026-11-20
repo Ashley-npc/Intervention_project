@@ -1,6 +1,15 @@
 // Structure commune des pages (menu latéral + en-tête), construite après vérification de la connexion.
 // Usage dans une page :  Shell.demarrer(function (contenu, user) { contenu.innerHTML = '…'; });
 // <body data-menu="planning"> indique l'entrée de menu à surligner.
+// Sur ordinateur, c'est la zone « contenu » qui défile (pas la page) : « remonter en haut » doit donc viser cette zone.
+(function () {
+  var origine = window.scrollTo;
+  window.scrollTo = function (x, y) {
+    var c = document.querySelector('.app .content');
+    if (c && window.matchMedia && window.matchMedia('(min-width: 821px)').matches) { c.scrollTop = (typeof x === 'object' && x) ? (x.top || 0) : (y || 0); }
+    else origine.apply(window, arguments);
+  };
+})();
 var Shell = (function () {
   function liens(role) {
     var l = [['Tableau de bord', PAGES[role], 'accueil']];
