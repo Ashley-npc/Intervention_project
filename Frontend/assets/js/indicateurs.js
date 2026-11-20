@@ -85,10 +85,10 @@ Shell.demarrer(function (contenu, user) {
       '<section class="card t-brand centre"><h2>Réalisation</h2>' + jauge(a.taux_realisation, COUL.brand, pct(a.taux_realisation)) +
         '<p class="muted">' + a.realisees + ' réalisées · ' + a.annulees + ' annulées (' + pct(a.taux_annulation) + ') · ' + a.non_realisees + ' échue(s) non réalisée(s)</p><p class="muted">' + num(a.heures_realisees, ' h') + ' réalisées · ' + a.a_venir + ' à venir</p></section>' +
       '<section class="card t-warn"><h2>Absentéisme</h2><div class="don">' + donut(b.taux, COUL.warn, 120, pct(b.taux)) +
-        '<ul class="lg"><li><b style="background:' + COUL.warn + '"></b>Planifiées : ' + b.jours_planifiees + ' j</li><li><b style="background:' + COUL.rose + '"></b>Imprévues : ' + b.jours_imprevues + ' j</li><li class="muted">' + b.jours_absence + ' jour(s) d\'absence au total</li><li class="muted">' + b.absences_beneficiaires + ' absence(s) de bénéficiaires</li></ul></div>' +
+        '<ul class="i-lg"><li><b style="background:' + COUL.warn + '"></b>Planifiées : ' + b.jours_planifiees + ' j</li><li><b style="background:' + COUL.rose + '"></b>Imprévues : ' + b.jours_imprevues + ' j</li><li class="muted">' + b.jours_absence + ' jour(s) d\'absence au total</li><li class="muted">' + b.absences_beneficiaires + ' absence(s) de bénéficiaires</li></ul></div>' +
         '<p class="muted">Taux = jours d\'absence ÷ (' + b.intervenants_actifs + ' intervenant(s) actif(s) × ' + d.nb_jours + ' jours).</p></section>';
     if (sa) {
-      h += '<section class="card t-ok"><h2>Satisfaction</h2><div class="note"><b>' + (sa.moyenne === null ? 'n/a' : nf(sa.moyenne)) + '</b><span class="muted"> / 5</span><div>' + (sa.moyenne === null ? '' : etoiles(sa.moyenne)) + '<div class="muted">' + sa.nb_avis + ' avis · ' + sa.notes_basses + ' note(s) ≤ 2</div></div></div>';
+      h += '<section class="card t-ok"><h2>Satisfaction</h2><div class="i-note"><b>' + (sa.moyenne === null ? 'n/a' : nf(sa.moyenne)) + '</b><span class="muted"> / 5</span><div>' + (sa.moyenne === null ? '' : etoiles(sa.moyenne)) + '<div class="muted">' + sa.nb_avis + ' avis · ' + sa.notes_basses + ' note(s) ≤ 2</div></div></div>';
       var mx = 0, nn; for (nn = 1; nn <= 5; nn++) mx = Math.max(mx, sa.repartition[nn]);
       for (nn = 5; nn >= 1; nn--) h += ligneBarre(nn + ' ★', mx ? sa.repartition[nn] * 100 / mx : 0, nn <= 2 ? COUL.rose : nn === 3 ? COUL.gris : COUL.ok, sa.repartition[nn]);
       h += '<p class="muted">Visites notées : ' + pct(sa.taux_reponse) + ' des visites réalisées.</p></section>';
@@ -101,7 +101,7 @@ Shell.demarrer(function (contenu, user) {
     for (i = 0; i < q.incidents.par_gravite.length; i++) gr += ligneBarre(esc(LIBELLES[q.incidents.par_gravite[i].gravite] || q.incidents.par_gravite[i].gravite), q.incidents.par_gravite[i].nb * 100 / tot, col[q.incidents.par_gravite[i].gravite] || COUL.gris, q.incidents.par_gravite[i].nb);
     h += '<div class="ind-g g21"><section class="card t-brand"><h2>Interventions par ' + (d.serie_par === 'mois' ? 'mois' : 'semaine') + '</h2>' + histogramme(d.serie || []) + '</section>' +
       '<section class="card t-ok"><h2>Qualité</h2>' + ligneBarre('Comptes rendus saisis', cr.taux_saisie || 0, COUL.ok, pct(cr.taux_saisie)) + ligneBarre('Comptes rendus validés', cr.taux_validation || 0, COUL.ok, pct(cr.taux_validation)) +
-        '<p class="muted sep">Incidents : ' + q.incidents.total + ' (' + q.incidents.non_traites + ' non traité(s))</p>' + (gr || '<p class="empty">Aucun incident sur la période.</p>') +
+        '<p class="muted i-sep">Incidents : ' + q.incidents.total + ' (' + q.incidents.non_traites + ' non traité(s))</p>' + (gr || '<p class="empty">Aucun incident sur la période.</p>') +
         '<p class="muted">' + cr.sans + ' intervention(s) échue(s) sans compte rendu, ' + cr.a_valider + ' compte(s) rendu(s) à valider.</p></section></div>';
 
     // 4. Délais + par type d'intervention
@@ -114,7 +114,7 @@ Shell.demarrer(function (contenu, user) {
 
     // 5. Par intervenant
     var li = [], mr = 0, v; for (v = 0; v < d.par_intervenant.length; v++) mr = Math.max(mr, d.par_intervenant[v].realisees);
-    for (v = 0; v < d.par_intervenant.length; v++) li.push([esc(d.par_intervenant[v].nom), d.par_intervenant[v].realisees, '<div class="piste"><i style="width:' + (mr ? Math.round(d.par_intervenant[v].realisees * 100 / mr) : 0) + '%"></i></div>', d.par_intervenant[v].annulees, num(d.par_intervenant[v].heures, ' h')]);
+    for (v = 0; v < d.par_intervenant.length; v++) li.push([esc(d.par_intervenant[v].nom), d.par_intervenant[v].realisees, '<div class="i-piste"><i style="width:' + (mr ? Math.round(d.par_intervenant[v].realisees * 100 / mr) : 0) + '%"></i></div>', d.par_intervenant[v].annulees, num(d.par_intervenant[v].heures, ' h')]);
     h += '<section class="card t-violet"><header><h2>Par intervenant</h2></header><div class="table-wrap stack">' + tableau(['Intervenant', 'Réalisées', 'Charge', 'Annulées', 'Heures'], li) + '</div></section>';
 
     // 6. Coûts (direction)
