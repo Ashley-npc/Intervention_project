@@ -10,6 +10,26 @@ var Documents = (function () {
     return fetch(API + 'documents.php', { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
       .then(function (rep) { return rep.json().catch(function () { return {}; }).then(function (data) { return { status: rep.status, ok: rep.ok, data: data }; }); });
   }
+  // Visionneuse : le document s'ouvre par-dessus la page (même onglet), on la ferme avec la croix, Échap ou un clic à côté.
+  function visionneuse(id, titre, nom) {
+    var ancien = document.getElementById('visio'); if (ancien) ancien.parentNode.removeChild(ancien);
+    var image = /\.(jpe?g|png)$/i.test(nom || ''), src = lien(id, 'voir'), precedent = document.activeElement;
+    var v = document.createElement('div'); v.id = 'visio'; v.className = 'visio'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-modal', 'true'); v.setAttribute('aria-label', 'Consultation : ' + titre);
+    v.innerHTML = '<div class="visio-boite"><div class="visio-barre"><b>' + esc(titre) + '</b><span class="visio-acts">' +
+      '<a class="btn small secondary" href="' + lien(id, 'telecharger') + '">Télécharger</a> <button type="button" class="btn small" id="visio-x">Fermer</button></span></div>' +
+      '<div class="visio-corps">' + (image ? '<img src="' + src + '" alt="' + esc(titre) + '">' : '<iframe src="' + src + '" title="' + esc(titre) + '"></iframe>') + '</div></div>';
+    document.body.appendChild(v); document.body.classList.add('visio-ouverte');
+    function fermer() {
+      document.removeEventListener('keydown', touche); document.body.classList.remove('visio-ouverte');
+      if (v.parentNode) v.parentNode.removeChild(v);
+      if (precedent && precedent.focus) precedent.focus();
+    }
+    function touche(e) { if (e.keyCode === 27) fermer(); }
+    document.addEventListener('keydown', touche);
+    v.addEventListener('click', function (e) { if (e.target === v) fermer(); });
+    document.getElementById('visio-x').addEventListener('click', fermer);
+    document.getElementById('visio-x').focus();
+  }
   var FICHES = { beneficiaire: 'beneficiaires/fiche.html?id=', intervenant: 'intervenants/fiche.html?id=', intervention: 'interventions/fiche.html?id=' };
 
   function carte(zone, cible) {
@@ -24,7 +44,7 @@ var Documents = (function () {
     }
     function boutons(d, peutArchiver, version) {
       var h = '<a class="btn small ic" href="' + lien(d.id, 'telecharger') + '" title="Télécharger" aria-label="Télécharger">' + ico('telecharger') + '</a>';
-      if (d.affichable) h = '<a class="btn small ic" href="' + lien(d.id, 'voir') + '" target="_blank" rel="noopener" title="Consulter" aria-label="Consulter">' + ico('voir') + '</a> ' + h;
+      if (d.affichable) h = '<a class="btn small ic" href="' + lien(d.id, 'voir') + '" data-voir="' + d.id + '" data-titre="' + esc(d.titre) + '" data-nom="' + esc(d.nom_fichier) + '" title="Consulter" aria-label="Consulter">' + ico('voir') + '</a> ' + h;
       if (version) return h;
       if (!d.archive) h += ' ' + btnIco('televerser', 'Nouvelle version', 'data-v="' + d.id + '"');
       if (d.nb_versions > 1) h += ' ' + btnIco('n_disponibilites', 'Historique des versions', 'data-h="' + d.id + '"');
@@ -111,6 +131,10 @@ var Documents = (function () {
     }
     function charger() { cherche().then(dessiner); }
 
+    zone.addEventListener('click', function (e) {
+      var l = e.target.closest ? e.target.closest('a[data-voir]') : null;
+      if (l && !(e.ctrlKey || e.metaKey || e.shiftKey || e.button)) { e.preventDefault(); visionneuse(l.getAttribute('data-voir'), l.getAttribute('data-titre'), l.getAttribute('data-nom')); }
+    });
     zone.addEventListener('click', function (e) {
       var b = e.target.closest ? e.target.closest('button') : null; if (!b) return;
       var id;
